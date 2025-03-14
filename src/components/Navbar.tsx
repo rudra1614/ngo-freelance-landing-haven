@@ -37,9 +37,11 @@ const Navbar = () => {
           </Button>
         </Link>
         
-        <Button className="bg-ngo-blue text-white hover:bg-ngo-blue-dark">
-          HIRE SOCIALWORKER
-        </Button>
+        <Link to="/organization/login">
+          <Button className="bg-ngo-blue text-white hover:bg-ngo-blue-dark">
+            HIRE SOCIALWORKER
+          </Button>
+        </Link>
       </div>
       
       {/* Mobile menu */}
@@ -63,9 +65,11 @@ const Navbar = () => {
                     I'M A SOCIALWORKER
                   </Button>
                 </Link>
-                <Button className="w-full bg-ngo-blue text-white hover:bg-ngo-blue-dark">
-                  HIRE SOCIALWORKER
-                </Button>
+                <Link to="/organization/login">
+                  <Button className="w-full bg-ngo-blue text-white hover:bg-ngo-blue-dark">
+                    HIRE SOCIALWORKER
+                  </Button>
+                </Link>
               </div>
             </div>
           </SheetContent>
