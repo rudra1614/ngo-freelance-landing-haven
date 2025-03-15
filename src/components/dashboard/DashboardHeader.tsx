@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Home, User, Briefcase } from 'lucide-react';
+import { Home, User, Briefcase, FileCheck } from 'lucide-react';
 
 const DashboardHeader = () => {
   return (
@@ -24,6 +24,12 @@ const DashboardHeader = () => {
               <Link to="/jobs">
                 <Briefcase className="h-4 w-4 mr-2" />
                 Browse Jobs
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/dashboard?tab=applications">
+                <FileCheck className="h-4 w-4 mr-2" />
+                Applications
               </Link>
             </Button>
             <Button size="sm" variant="ghost">

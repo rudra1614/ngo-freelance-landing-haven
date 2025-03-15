@@ -6,6 +6,7 @@ import PersonalInfoForm from '@/components/dashboard/PersonalInfoForm';
 import EducationForm from '@/components/dashboard/EducationForm';
 import ExperienceForm from '@/components/dashboard/ExperienceForm';
 import CertificatesForm from '@/components/dashboard/CertificatesForm';
+import AppliedJobs from '@/components/dashboard/AppliedJobs';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 
 const Dashboard = () => {
@@ -17,11 +18,12 @@ const Dashboard = () => {
         <h1 className="text-2xl font-bold mb-6">Personal Dashboard</h1>
         
         <Tabs defaultValue="personal" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="personal">Personal Info</TabsTrigger>
             <TabsTrigger value="education">Education</TabsTrigger>
             <TabsTrigger value="experience">Experience</TabsTrigger>
             <TabsTrigger value="certificates">Certificates</TabsTrigger>
+            <TabsTrigger value="applications">Applied Jobs</TabsTrigger>
           </TabsList>
           
           <TabsContent value="personal">
@@ -68,6 +70,18 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <CertificatesForm />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="applications">
+            <Card>
+              <CardHeader>
+                <CardTitle>Applied Jobs</CardTitle>
+                <CardDescription>Track the status of your job applications</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AppliedJobs />
               </CardContent>
             </Card>
           </TabsContent>
