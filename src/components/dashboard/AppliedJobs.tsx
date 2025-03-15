@@ -15,19 +15,15 @@ import { Badge } from '@/components/ui/badge';
 import { Check, Clock, X, Eye } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-// Define a simpler interface structure to avoid circular references
+// Simplified type structure to avoid circular references
 interface Application {
   id: string;
   job_id: string;
   status: string;
   created_at: string;
-  job: {
-    title: string;
-    organization: {
-      name: string;
-    } | null;
-    location: string | null;
-  };
+  job_title: string;
+  organization_name: string | null;
+  job_location: string | null;
 }
 
 const fetchApplications = async (): Promise<Application[]> => {
@@ -59,7 +55,16 @@ const fetchApplications = async (): Promise<Application[]> => {
     throw error;
   }
   
-  return data as Application[] || [];
+  // Transform the nested data into a flat structure
+  return (data || []).map(item => ({
+    id: item.id,
+    job_id: item.job_id,
+    status: item.status,
+    created_at: item.created_at,
+    job_title: item.job?.title || 'Unknown',
+    organization_name: item.job?.organization?.name || 'Unknown',
+    job_location: item.job?.location || 'Remote'
+  }));
 };
 
 const AppliedJobs: React.FC = () => {
@@ -138,12 +143,10 @@ const AppliedJobs: React.FC = () => {
             {applications.map((application) => (
               <TableRow key={application.id}>
                 <TableCell className="font-medium">
-                  {application.job?.organization?.name || 'Unknown'}
+                  {application.organization_name}
                 </TableCell>
-                <TableCell>{application.job?.title || 'Unknown'}</TableCell>
-                <TableCell>
-                  {application.job?.location || 'Remote'}
-                </TableCell>
+                <TableCell>{application.job_title}</TableCell>
+                <TableCell>{application.job_location}</TableCell>
                 <TableCell>
                   {new Date(application.created_at).toLocaleDateString()}
                 </TableCell>
