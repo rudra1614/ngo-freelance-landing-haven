@@ -59,7 +59,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onSave }) => {
           <p className="text-gray-600">
             {job.requirements 
               ? truncateText(job.requirements, 150)
-              : 'bizga kerak Full Stack Developer, chunki Full Stack sekin sekin ishga kirib bizning companyadan qochib o'tirdi. biz o'zimni ishga sodiqqiz.'}
+              : "bizga kerak Full Stack Developer, chunki Full Stack sekin sekin ishga kirib bizning companyadan qochib o'tirdi. biz o'zimni ishga sodiqqiz."}
           </p>
           <p className="font-semibold">Skills:</p>
         </div>
