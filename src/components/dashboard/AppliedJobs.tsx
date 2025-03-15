@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { 
@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Check, Clock, X, Eye } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
+// Define a simpler interface structure to avoid circular references
 interface Application {
   id: string;
   job_id: string;
@@ -24,12 +25,12 @@ interface Application {
     title: string;
     organization: {
       name: string;
-    };
+    } | null;
     location: string | null;
   };
 }
 
-const fetchApplications = async () => {
+const fetchApplications = async (): Promise<Application[]> => {
   const { data: session } = await supabase.auth.getSession();
   
   if (!session?.session?.user) {
@@ -58,7 +59,7 @@ const fetchApplications = async () => {
     throw error;
   }
   
-  return data || [];
+  return data as Application[] || [];
 };
 
 const AppliedJobs: React.FC = () => {
