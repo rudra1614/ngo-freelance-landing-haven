@@ -12,6 +12,7 @@ import OrganizationLogin from "./pages/OrganizationLogin";
 import OrganizationSignup from "./pages/OrganizationSignup";
 import OrganizationDashboard from "./pages/OrganizationDashboard";
 import Jobs from "./pages/Jobs";
+import Dashboard from "./pages/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/jobs" element={<Jobs />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/organization/login" element={<OrganizationLogin />} />
           <Route path="/organization/signup" element={<OrganizationSignup />} />
           <Route path="/organization/dashboard" element={<OrganizationDashboard />} />
