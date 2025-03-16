@@ -9,7 +9,7 @@ const opportunitiesData = [
     id: 1,
     title: "Community Garden Coordinator",
     organization: "GreenSpace Initiative",
-    location: "New York, NY",
+    location: "Mumbai, India",
     type: "On-site",
     duration: "3 months",
     volunteers: 5,
@@ -27,13 +27,14 @@ const opportunitiesData = [
     id: 3,
     title: "Disaster Relief Volunteer",
     organization: "Global Relief Network",
-    location: "Miami, FL",
+    location: "Mizoram",
     type: "On-site",
     duration: "1 month",
     volunteers: 12,
   }
 ];
 
+/*
 const FeaturedOpportunities = () => {
   return (
     <section className="py-16 bg-gray-100">
@@ -75,5 +76,6 @@ const FeaturedOpportunities = () => {
     </section>
   );
 };
+*/
 
 export default FeaturedOpportunities;
