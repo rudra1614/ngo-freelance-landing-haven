@@ -13,8 +13,9 @@ const CallToAction = () => {
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <Link to="/login">
              <Button size="lg" variant="secondary" className="px-8" >
-            Find Opportunities
+            Find Opportunities 
              </Button>
+          </Link>   
         </div>
       </div>
     </section>
