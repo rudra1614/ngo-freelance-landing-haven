@@ -15,12 +15,6 @@ const CallToAction = () => {
              <Button size="lg" variant="secondary" className="px-8" >
             Find Opportunities
              </Button>
-          </Link>
-          <Link to="/organization/login">
-             <Button size="lg" className="bg-white text-ngo-blue hover:bg-gray-100 px-8" onClick="/organization/login">
-            Post a Project
-             </Button>
-          </Link>
         </div>
       </div>
     </section>
