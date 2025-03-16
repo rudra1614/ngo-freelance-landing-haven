@@ -34,7 +34,6 @@ const opportunitiesData = [
   }
 ];
 
-/*
 const FeaturedOpportunities = () => {
   return (
     <section className="py-16 bg-gray-100">
@@ -76,6 +75,6 @@ const FeaturedOpportunities = () => {
     </section>
   );
 };
-*/
+
 
 export default FeaturedOpportunities;
