@@ -56,7 +56,7 @@ const Jobs = () => {
         .from('jobs')
         .select(`
           *,
-          organization:organization_id(name)
+          organization:organizations (name)
         `)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
@@ -65,6 +65,7 @@ const Jobs = () => {
         throw error;
       }
 
+      console.log('Fetched jobs:', data);
       setJobs(data || []);
       setFilteredJobs(data || []);
     } catch (error) {
@@ -85,6 +86,32 @@ const Jobs = () => {
       title: 'Job saved',
       description: 'This job has been saved to your profile',
     });
+  };
+
+  const handleApplyToJob = async (jobId: string) => {
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      
+      if (!session?.session?.user) {
+        toast({
+          title: 'Authentication required',
+          description: 'Please log in to apply for jobs',
+          variant: 'destructive',
+        });
+        navigate('/login');
+        return;
+      }
+      
+      // Navigate to the job details page or directly apply
+      navigate(`/jobs/${jobId}`);
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: 'Error',
+        description: 'Something went wrong. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -131,11 +158,12 @@ const Jobs = () => {
               ) : filteredJobs.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {filteredJobs.map((job) => (
-                    <JobCard 
-                      key={job.id} 
-                      job={job} 
-                      onSave={() => handleSaveJob(job.id)} 
-                    />
+                    <div key={job.id} onClick={() => handleApplyToJob(job.id)} className="cursor-pointer">
+                      <JobCard 
+                        job={job} 
+                        onSave={() => handleSaveJob(job.id)} 
+                      />
+                    </div>
                   ))}
                 </div>
               ) : (

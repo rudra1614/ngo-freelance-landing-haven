@@ -23,6 +23,7 @@ interface JobCardProps {
 
 const JobCard: React.FC<JobCardProps> = ({ job, onSave }) => {
   const truncateText = (text: string, maxLength: number) => {
+    if (!text) return "";
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
   };
@@ -59,23 +60,22 @@ const JobCard: React.FC<JobCardProps> = ({ job, onSave }) => {
           <p className="text-gray-600">
             {job.requirements 
               ? truncateText(job.requirements, 150)
-              : "bizga kerak Full Stack Developer, chunki Full Stack sekin sekin ishga kirib bizning companyadan qochib o'tirdi. biz o'zimni ishga sodiqqiz."}
+              : "Job description not available."}
           </p>
-          <p className="font-semibold">Skills:</p>
         </div>
         
         <div className="flex flex-wrap gap-2 mt-4">
           <div className="flex items-center text-sm bg-gray-100 px-3 py-1 rounded-full">
             <MapPinIcon className="h-4 w-4 mr-1 text-gray-500" />
-            <span>of-online</span>
+            <span>{job.location || 'Remote'}</span>
           </div>
           <div className="flex items-center text-sm bg-gray-100 px-3 py-1 rounded-full">
             <BriefcaseIcon className="h-4 w-4 mr-1 text-gray-500" />
-            <span>Contract</span>
+            <span>Full-time</span>
           </div>
           <div className="flex items-center text-sm bg-gray-100 px-3 py-1 rounded-full">
             <DollarSignIcon className="h-4 w-4 mr-1 text-gray-500" />
-            <span>{job.salary_range || '2000.dollor'}</span>
+            <span>{job.salary_range || 'Salary not specified'}</span>
           </div>
         </div>
       </CardContent>
