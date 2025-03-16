@@ -11,10 +11,10 @@ const CallToAction = () => {
           Join our community of passionate social workers and NGOs committed to creating positive change around the world.
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
-          <Button size="lg" variant="secondary" className="px-8">
+          <Button size="lg" variant="secondary" className="px-8" onClick="/login">
             Find Opportunities
           </Button>
-          <Button size="lg" className="bg-white text-ngo-blue hover:bg-gray-100 px-8">
+          <Button size="lg" className="bg-white text-ngo-blue hover:bg-gray-100 px-8" onClick="/organization/login">
             Post a Project
           </Button>
         </div>

@@ -69,7 +69,7 @@ const StatsAndPortal = () => {
             <p className="text-lg text-gray-700 mb-8">
               Whatever you are, a social worker, an NGO owner we got you. We have all types of social works ready for you.
             </p>
-            <Button size="lg" className="bg-ngo-blue hover:bg-ngo-blue-dark text-white">
+            <Button size="lg" className="bg-ngo-blue hover:bg-ngo-blue-dark text-white" onClick="/jobs">
               Show me all available SocialWork
             </Button>
           </div>

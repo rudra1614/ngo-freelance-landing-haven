@@ -22,7 +22,7 @@ const Hero = () => {
           <p className="text-gray-300 text-lg mb-8 max-w-lg">
             The website helps you land your dream social work, the ones done on site or remote.
           </p>
-          <Button className="bg-ngo-blue hover:bg-ngo-blue-dark text-white text-lg px-8 py-6">
+          <Button className="bg-ngo-blue hover:bg-ngo-blue-dark text-white text-lg px-8 py-6" onClick="/login">
             Find me a SocialWork
           </Button>
         </div>
