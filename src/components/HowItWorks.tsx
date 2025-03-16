@@ -38,7 +38,7 @@ const HowItWorks = () => {
                 {step.icon}
               </div>
               <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
-              <p className="text-gray-600">{step.description}</p>
+              <p className="text-white-600">{step.description}</p>
             </div>
           ))}
         </div>
