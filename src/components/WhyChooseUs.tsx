@@ -58,13 +58,6 @@ const WhyChooseUs = () => {
             </div>
           ))}
         </div>
-
-        <div className="text-center mt-16">
-          <p className="text-xl mb-8">Convinced?</p>
-          <Button size="lg" className="bg-ngo-blue hover:bg-ngo-blue-dark text-white px-10">
-            Get started
-          </Button>
-        </div>
       </div>
     </section>
   );

@@ -48,7 +48,7 @@ const Footer = () => {
             <ul className="space-y-3">
               <li className="flex items-center">
                 <MapPin size={18} className="mr-2 text-ngo-blue" />
-                <span className="text-gray-400">123 Impact Street, New York, NY 10001</span>
+                <span className="text-gray-400">VIT Bhopal University, Kothri Kalan, Sehore, India</span>
               </li>
               <li className="flex items-center">
                 <Phone size={18} className="mr-2 text-ngo-blue" />
@@ -81,7 +81,7 @@ const Footer = () => {
         </div>
         
         <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-500">
-          <p>&copy; {new Date().getFullYear()} NGO Freelancing. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} NGO Freelancing. All rights reserved. Maintained by M.K. Jayanti</p>
         </div>
       </div>
     </footer>
