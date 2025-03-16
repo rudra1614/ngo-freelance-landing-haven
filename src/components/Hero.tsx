@@ -30,7 +30,7 @@ const Hero = () => {
         <div className="w-full md:w-1/2 mt-10 md:mt-0 relative z-10">
           <div className="relative">
             <img 
-              src="/lovable-uploads/229c12b2-9b37-48d4-87e4-9f071021f004.png" 
+              src="/C:\Users\Rudra Naik\Documents\GitHub\ngo-freelance-landing-haven\public\lovable-uploads\NGO 1 (2).jpg" 
               alt="Social worker helping in a community garden" 
               className="rounded-lg shadow-xl max-w-full md:ml-auto"
             />
