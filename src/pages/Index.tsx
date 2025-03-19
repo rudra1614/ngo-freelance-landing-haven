@@ -1,7 +1,7 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
-import FeaturedOpportunities from '@/components/FeaturedOpportunities';
+
 import HowItWorks from '@/components/HowItWorks';
 import WhyChooseUs from '@/components/WhyChooseUs';
 import StatsAndPortal from '@/components/StatsAndPortal';
@@ -14,7 +14,7 @@ const Index = () => {
     <div className="min-h-screen bg-ngo-darkblue">
       <Navbar />
       <Hero />
-      <FeaturedOpportunities />
+
       <HowItWorks />
       <WhyChooseUs />
       <StatsAndPortal />
