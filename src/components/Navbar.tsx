@@ -22,14 +22,7 @@ const Navbar = () => {
       </div>
       
       <div className="hidden md:flex items-center space-x-4">
-        <div className="relative w-[400px]">
-          <Input 
-            type="text" 
-            placeholder="Search" 
-            className="pl-3 pr-10 py-2 rounded-md bg-white text-black w-full"
-          />
-          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-5 w-5" />
-        </div>
+        
         
         <Link to="/login">
           <Button variant="outline" className="border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white">
