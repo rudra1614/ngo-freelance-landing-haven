@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,6 +16,7 @@ interface Job {
   id: string;
   title: string;
   organization_id: string;
+  description: string;
   location: string | null;
   salary_range: string | null;
   requirements: string | null;
@@ -42,7 +44,8 @@ const Jobs = () => {
       const filtered = jobs.filter(job => 
         job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (job.organization?.name && job.organization.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (job.location && job.location.toLowerCase().includes(searchQuery.toLowerCase()))
+        (job.location && job.location.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (job.description && job.description.toLowerCase().includes(searchQuery.toLowerCase()))
       );
       setFilteredJobs(filtered);
     }
@@ -111,6 +114,15 @@ const Jobs = () => {
         variant: 'destructive',
       });
     }
+  };
+
+  // Filter jobs for remote jobs tab
+  const getRemoteJobs = () => {
+    return jobs.filter(job => 
+      job.location?.toLowerCase().includes('remote') || 
+      !job.location || 
+      job.location.trim() === ''
+    );
   };
 
   return (
@@ -205,12 +217,38 @@ const Jobs = () => {
             </TabsContent>
             
             <TabsContent value="remote">
-              <div className="text-center py-12">
-                <h3 className="text-xl font-medium">Remote jobs coming soon</h3>
-                <p className="text-gray-500 mt-2">
-                  Check back later for remote job opportunities
-                </p>
-              </div>
+              {loading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {[1, 2].map((_, index) => (
+                    <Card key={index} className="h-64 animate-pulse">
+                      <CardContent className="p-6">
+                        <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                        <div className="h-4 bg-gray-200 rounded w-full mb-4"></div>
+                        <div className="h-10 bg-gray-200 rounded w-full mt-auto"></div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : getRemoteJobs().length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {getRemoteJobs().map((job) => (
+                    <div key={job.id} onClick={() => handleApplyToJob(job.id)} className="cursor-pointer">
+                      <JobCard 
+                        job={job} 
+                        onSave={() => handleSaveJob(job.id)} 
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <h3 className="text-xl font-medium">No remote jobs found</h3>
+                  <p className="text-gray-500 mt-2">
+                    Check back later for remote job opportunities
+                  </p>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </div>
