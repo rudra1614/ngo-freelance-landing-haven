@@ -68,8 +68,26 @@ const Jobs = () => {
       }
 
       console.log('Fetched jobs:', data);
-      setJobs(data || []);
-      setFilteredJobs(data || []);
+      
+      if (data && data.length > 0) {
+        setJobs(data);
+        setFilteredJobs(data);
+      } else {
+        // If no jobs found with active status, try fetching all jobs for testing
+        const { data: allJobs, error: allJobsError } = await supabase
+          .from('jobs')
+          .select(`
+            *,
+            organization:organizations (name)
+          `)
+          .order('created_at', { ascending: false });
+        
+        if (allJobsError) throw allJobsError;
+        
+        console.log('Fetched all jobs:', allJobs);
+        setJobs(allJobs || []);
+        setFilteredJobs(allJobs || []);
+      }
     } catch (error) {
       console.error('Error fetching jobs:', error);
       toast({
