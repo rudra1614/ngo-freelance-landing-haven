@@ -46,8 +46,14 @@ const AppliedJobs = () => {
 
         if (error) throw error;
 
+        if (!data) {
+          setApplications([]);
+          setLoading(false);
+          return;
+        }
+
         // Transform data to match the JobApplication type
-        const formattedApplications = data.map((app) => ({
+        const formattedApplications = data.map((app: any) => ({
           id: app.id,
           job_title: app.jobs?.title || 'Unknown Job',
           organization_name: app.jobs?.organizations?.name || 'Unknown Organization',
