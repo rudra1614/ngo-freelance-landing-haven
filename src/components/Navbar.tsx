@@ -16,7 +16,7 @@ const Navbar = () => {
           <Link to="/" className="text-white hover:text-blue-400 transition-colors">Home</Link>
           <Link to="/jobs" className="text-white hover:text-blue-400 transition-colors">Jobs</Link>
           <Link to="/about" className="text-white hover:text-blue-400 transition-colors">About</Link>
-          <Link to="/" className="text-white hover:text-blue-400 transition-colors">Support</Link>
+          <Link to="/support" className="text-white hover:text-blue-400 transition-colors">Support</Link>
           <Link to="/" className="text-white hover:text-blue-400 transition-colors">Donate</Link>
         </div>
       </div>
@@ -51,7 +51,7 @@ const Navbar = () => {
               <Link to="/jobs" className="text-white hover:text-blue-400 transition-colors text-lg">Jobs</Link>
               <Link to="/about" className="text-white hover:text-blue-400 transition-colors text-lg">About</Link>
               <Link to="/support" className="text-white hover:text-blue-400 transition-colors text-lg">Support</Link>
-              <Link to="/about" className="text-white hover:text-blue-400 transition-colors text-lg">About</Link>
+              <Link to="/donate" className="text-white hover:text-blue-400 transition-colors text-lg">Donate</Link>
               <div className="pt-4 border-t border-gray-700">
                 <Link to="/login">
                   <Button variant="outline" className="w-full mb-3 border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white">

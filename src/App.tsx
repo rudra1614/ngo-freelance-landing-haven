@@ -14,6 +14,7 @@ import OrganizationSignup from "./pages/OrganizationSignup";
 import OrganizationDashboard from "./pages/OrganizationDashboard";
 import Jobs from "./pages/Jobs";
 import Dashboard from "./pages/Dashboard";
+import Support from "./pages/Support";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/organization/login" element={<OrganizationLogin />} />
           <Route path="/organization/signup" element={<OrganizationSignup />} />
           <Route path="/organization/dashboard" element={<OrganizationDashboard />} />
+          <Route path="/support" element={<Support />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Check, Clock, X, Eye } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-// Simplified type structure to avoid circular references
+// Define a flat application type to avoid deep nesting
 interface Application {
   id: string;
   job_id: string;
