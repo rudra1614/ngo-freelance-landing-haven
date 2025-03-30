@@ -40,10 +40,10 @@ const fetchApplications = async (): Promise<Application[]> => {
       job_id,
       status,
       created_at,
-      job:jobs (
+      jobs (
         title,
         location,
-        organization:organizations (
+        organizations (
           name
         )
       )
@@ -55,15 +55,15 @@ const fetchApplications = async (): Promise<Application[]> => {
     throw error;
   }
   
-  // Transform the nested data into a flat structure
+  // Transform the nested data into a flat structure to avoid circular references
   return (data || []).map(item => ({
     id: item.id,
     job_id: item.job_id,
     status: item.status,
     created_at: item.created_at,
-    job_title: item.job?.title || 'Unknown',
-    organization_name: item.job?.organization?.name || 'Unknown',
-    job_location: item.job?.location || 'Remote'
+    job_title: item.jobs?.title || 'Unknown',
+    organization_name: item.jobs?.organizations?.name || 'Unknown',
+    job_location: item.jobs?.location || 'Remote'
   }));
 };
 

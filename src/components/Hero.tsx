@@ -1,8 +1,15 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 const Hero = () => {
+  const navigate = useNavigate();
+
+  const handleButtonClick = () => {
+    navigate('/login');
+  };
+
   return (
     <div className="relative w-full min-h-[80vh] flex items-center">
       {/* Dotted pattern overlay */}
@@ -22,7 +29,10 @@ const Hero = () => {
           <p className="text-gray-300 text-lg mb-8 max-w-lg">
             The website helps you land your dream social work, the ones done on site or remote.
           </p>
-          <Button className="bg-ngo-blue hover:bg-ngo-blue-dark text-white text-lg px-8 py-6" onClick="/login">
+          <Button 
+            className="bg-ngo-blue hover:bg-ngo-blue-dark text-white text-lg px-8 py-6" 
+            onClick={handleButtonClick}
+          >
             Find me a SocialWork
           </Button>
         </div>
