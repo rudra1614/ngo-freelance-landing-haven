@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Menu, X } from 'lucide-react';
+import { Search, Menu, X, Home } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const Navbar = () => {
@@ -13,7 +13,10 @@ const Navbar = () => {
         <Link to="/" className="text-blue-500 font-bold text-2xl">NGO</Link>
         
         <div className="hidden md:flex space-x-8">
-          <Link to="/" className="text-white hover:text-blue-400 transition-colors">Home</Link>
+          <Link to="/" className="text-white hover:text-blue-400 transition-colors flex items-center">
+            <Home className="h-4 w-4 mr-2" />
+            Home
+          </Link>
           <Link to="/" className="text-white hover:text-blue-400 transition-colors">Support</Link>
           <Link to="/" className="text-white hover:text-blue-400 transition-colors">About</Link>
           <Link to="/" className="text-white hover:text-blue-400 transition-colors">Donate</Link>
@@ -44,7 +47,10 @@ const Navbar = () => {
           </SheetTrigger>
           <SheetContent side="right" className="bg-ngo-darkblue text-white pt-12">
             <div className="flex flex-col space-y-6">
-              <Link to="/" className="text-white hover:text-blue-400 transition-colors text-lg">Home</Link>
+              <Link to="/" className="text-white hover:text-blue-400 transition-colors text-lg flex items-center">
+                <Home className="h-5 w-5 mr-2" />
+                Home
+              </Link>
               <Link to="/support" className="text-white hover:text-blue-400 transition-colors text-lg">Support</Link>
               <Link to="/about" className="text-white hover:text-blue-400 transition-colors text-lg">About</Link>
               <div className="pt-4 border-t border-gray-700">

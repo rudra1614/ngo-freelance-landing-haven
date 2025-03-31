@@ -49,6 +49,12 @@ const DashboardHeader = () => {
           </div>
           <div className="flex items-center space-x-4">
             <Button variant="ghost" size="sm" asChild>
+              <Link to="/">
+                <Home className="h-4 w-4 mr-2" />
+                Home
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
               <Link to="/dashboard?tab=jobs">
                 <Briefcase className="h-4 w-4 mr-2" />
                 Jobs
