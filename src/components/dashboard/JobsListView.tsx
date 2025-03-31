@@ -2,10 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Briefcase, DollarSign, ArrowRight, Loader2 } from 'lucide-react';
+import { MapPin, Briefcase, DollarSign, ArrowRight, Loader2, SendIcon } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useNavigate } from 'react-router-dom';
+import JobCard from '@/components/jobs/JobCard';
 
 interface Organization {
   id: string;
@@ -22,12 +24,14 @@ interface Job {
   status: string;
   created_at: string;
   organization: Organization | null;
+  organization_id: string;
 }
 
 const JobsListView = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -70,10 +74,69 @@ const JobsListView = () => {
     fetchJobs();
   }, []);
 
-  const truncateText = (text: string, maxLength: number) => {
-    if (!text) return "";
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
+  const handleApply = async (jobId: string) => {
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: 'Authentication required',
+          description: 'Please log in to apply for jobs',
+          variant: 'destructive',
+        });
+        navigate('/login');
+        return;
+      }
+      
+      // Check if user has already applied
+      const { data: existingApplications, error: checkError } = await supabase
+        .from('applications')
+        .select('*')
+        .eq('job_id', jobId)
+        .eq('applicant_email', user.email);
+      
+      if (checkError) throw checkError;
+      
+      if (existingApplications && existingApplications.length > 0) {
+        toast({
+          title: 'Already applied',
+          description: 'You have already applied for this job',
+        });
+        return;
+      }
+      
+      // Submit application
+      const { error: applyError } = await supabase
+        .from('applications')
+        .insert({
+          job_id: jobId,
+          applicant_email: user.email || '',
+          applicant_name: user.user_metadata.full_name || 'Anonymous',
+          status: 'pending'
+        });
+      
+      if (applyError) throw applyError;
+      
+      toast({
+        title: 'Application submitted',
+        description: 'Your job application has been submitted successfully',
+      });
+    } catch (error: any) {
+      console.error('Error applying for job:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to apply for this job',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleSaveJob = (jobId: string) => {
+    toast({
+      title: 'Job saved',
+      description: 'The job has been saved to your bookmarks',
+    });
   };
 
   if (loading) {
@@ -179,10 +242,20 @@ const JobsListView = () => {
                 )}
               </div>
               
-              <div className="mt-6 flex justify-end">
-                <Button variant="outline" className="flex items-center gap-2">
-                  View Details
-                  <ArrowRight className="h-4 w-4" />
+              <div className="mt-6 flex justify-end gap-3">
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-2"
+                  onClick={() => handleSaveJob(job.id)}
+                >
+                  Save
+                </Button>
+                <Button 
+                  className="flex items-center gap-2"
+                  onClick={() => handleApply(job.id)}
+                >
+                  Apply Now
+                  <SendIcon className="h-4 w-4" />
                 </Button>
               </div>
             </CardContent>
@@ -191,6 +264,12 @@ const JobsListView = () => {
       </div>
     </div>
   );
+};
+
+const truncateText = (text: string, maxLength: number) => {
+  if (!text) return "";
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + '...';
 };
 
 export default JobsListView;

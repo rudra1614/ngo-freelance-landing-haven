@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Home, User, FileCheck, Briefcase, LogOut } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,6 +14,7 @@ import {
 
 const DashboardHeader = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = async () => {
     try {
