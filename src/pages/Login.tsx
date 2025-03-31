@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { LogIn, Mail, Loader2 } from 'lucide-react';
+import { LogIn, Mail, Loader2, Home } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 const Login = () => {
@@ -61,7 +61,19 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-ngo-darkblue flex items-center justify-center px-4">
+    <div className="min-h-screen bg-ngo-darkblue flex items-center justify-center px-4 relative">
+      {/* Home button */}
+      <Button 
+        variant="outline" 
+        size="sm" 
+        className="absolute top-4 left-4 bg-white/10 hover:bg-white/20 text-white"
+        asChild
+      >
+        <Link to="/">
+          <Home className="h-4 w-4 mr-2" /> Home
+        </Link>
+      </Button>
+      
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Sign in</CardTitle>
