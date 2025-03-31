@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
@@ -22,9 +23,12 @@ import {
   X, 
   Briefcase, 
   MessageSquare, 
-  DownloadCloud,
+  ExternalLink,
   FileText,
-  ExternalLink
+  MapPin,
+  Phone,
+  User,
+  Mail
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -45,9 +49,10 @@ interface Application {
   job_title?: string;
 }
 
-interface Job {
-  id: string;
-  title: string;
+interface ApplicantDetails {
+  address: string;
+  contact: string;
+  location: string;
 }
 
 interface ApplicationsListProps {
@@ -62,6 +67,7 @@ const ApplicationsList: React.FC<ApplicationsListProps> = ({ organizationId }) =
   const [notes, setNotes] = useState('');
   const [newStatus, setNewStatus] = useState('');
   const [filter, setFilter] = useState('all');
+  const [applicantDetails, setApplicantDetails] = useState<ApplicantDetails | null>(null);
 
   const fetchApplications = async () => {
     try {
@@ -139,6 +145,28 @@ const ApplicationsList: React.FC<ApplicationsListProps> = ({ organizationId }) =
     setSelectedApplication(application);
     setNotes(application.notes || '');
     setNewStatus(application.status);
+    
+    // Parse applicant details from notes if available
+    try {
+      if (application.notes) {
+        const parsedDetails = JSON.parse(application.notes);
+        if (parsedDetails.address && parsedDetails.contact && parsedDetails.location) {
+          setApplicantDetails({
+            address: parsedDetails.address,
+            contact: parsedDetails.contact,
+            location: parsedDetails.location
+          });
+        } else {
+          setApplicantDetails(null);
+        }
+      } else {
+        setApplicantDetails(null);
+      }
+    } catch (e) {
+      console.error('Error parsing applicant details:', e);
+      setApplicantDetails(null);
+    }
+    
     setIsDetailsOpen(true);
   };
 
@@ -325,24 +353,56 @@ const ApplicationsList: React.FC<ApplicationsListProps> = ({ organizationId }) =
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Applicant Name</Label>
-                  <Input value={selectedApplication.applicant_name} readOnly />
+                  <Label className="flex items-center gap-2">
+                    <User className="h-4 w-4" /> Applicant Name
+                  </Label>
+                  <Input value={selectedApplication.applicant_name} readOnly className="mt-1" />
                 </div>
                 <div>
-                  <Label>Email</Label>
-                  <Input value={selectedApplication.applicant_email} readOnly />
+                  <Label className="flex items-center gap-2">
+                    <Mail className="h-4 w-4" /> Email
+                  </Label>
+                  <Input value={selectedApplication.applicant_email} readOnly className="mt-1" />
                 </div>
               </div>
               
+              {applicantDetails && (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="flex items-center gap-2">
+                        <Phone className="h-4 w-4" /> Contact Number
+                      </Label>
+                      <Input value={applicantDetails.contact} readOnly className="mt-1" />
+                    </div>
+                    <div>
+                      <Label className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4" /> Location
+                      </Label>
+                      <Input value={applicantDetails.location} readOnly className="mt-1" />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4" /> Address
+                    </Label>
+                    <Input value={applicantDetails.address} readOnly className="mt-1" />
+                  </div>
+                </>
+              )}
+              
               <div>
-                <Label>Job</Label>
-                <Input value={selectedApplication.job_title} readOnly />
+                <Label className="flex items-center gap-2">
+                  <Briefcase className="h-4 w-4" /> Job
+                </Label>
+                <Input value={selectedApplication.job_title} readOnly className="mt-1" />
               </div>
               
               <div>
-                <Label>Application Status</Label>
+                <Label className="flex items-center gap-2">Application Status</Label>
                 <Select value={newStatus} onValueChange={setNewStatus}>
-                  <SelectTrigger>
+                  <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -355,7 +415,7 @@ const ApplicationsList: React.FC<ApplicationsListProps> = ({ organizationId }) =
               
               {selectedApplication.applicant_resume && (
                 <div>
-                  <Label>Resume</Label>
+                  <Label className="flex items-center gap-2">Resume</Label>
                   <div className="mt-2 flex items-center space-x-2">
                     <Button 
                       variant="outline" 
@@ -382,7 +442,9 @@ const ApplicationsList: React.FC<ApplicationsListProps> = ({ organizationId }) =
               )}
               
               <div>
-                <Label>Notes</Label>
+                <Label className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" /> Notes
+                </Label>
                 <Textarea
                   placeholder="Add notes about this application..."
                   value={notes}

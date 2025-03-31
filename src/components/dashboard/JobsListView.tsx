@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Briefcase, DollarSign, ArrowRight, Loader2, SendIcon } from 'lucide-react';
+import { MapPin, Briefcase, DollarSign, Loader2, SendIcon } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useNavigate } from 'react-router-dom';
 import JobCard from '@/components/jobs/JobCard';
@@ -39,6 +39,12 @@ const JobsListView = () => {
   const [resumeUrl, setResumeUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  
+  // New form state for applicant details
+  const [applicantName, setApplicantName] = useState('');
+  const [applicantAddress, setApplicantAddress] = useState('');
+  const [applicantContact, setApplicantContact] = useState('');
+  const [applicantLocation, setApplicantLocation] = useState('');
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -97,6 +103,13 @@ const JobsListView = () => {
       // Set selected job and open the dialog
       setSelectedJobId(jobId);
       setResumeUrl('');
+      
+      // Prepopulate with user data if available
+      setApplicantName(user.user_metadata?.full_name || '');
+      setApplicantLocation('');
+      setApplicantContact('');
+      setApplicantAddress('');
+      
       setApplyDialogOpen(true);
     }).catch(error => {
       console.error('Error checking authentication:', error);
@@ -108,8 +121,59 @@ const JobsListView = () => {
     });
   };
 
+  const validateForm = () => {
+    if (!applicantName.trim()) {
+      toast({
+        title: 'Missing information',
+        description: 'Please enter your name',
+        variant: 'destructive',
+      });
+      return false;
+    }
+    
+    if (!applicantAddress.trim()) {
+      toast({
+        title: 'Missing information',
+        description: 'Please enter your address',
+        variant: 'destructive',
+      });
+      return false;
+    }
+    
+    if (!applicantContact.trim()) {
+      toast({
+        title: 'Missing information',
+        description: 'Please enter your contact number',
+        variant: 'destructive',
+      });
+      return false;
+    }
+    
+    if (!applicantLocation.trim()) {
+      toast({
+        title: 'Missing information',
+        description: 'Please enter your location',
+        variant: 'destructive',
+      });
+      return false;
+    }
+    
+    if (!resumeUrl.trim()) {
+      toast({
+        title: 'Missing information',
+        description: 'Please provide a URL to your resume',
+        variant: 'destructive',
+      });
+      return false;
+    }
+    
+    return true;
+  };
+
   const submitApplication = async () => {
     if (!selectedJobId) return;
+    
+    if (!validateForm()) return;
     
     try {
       setIsSubmitting(true);
@@ -144,15 +208,20 @@ const JobsListView = () => {
         return;
       }
       
-      // Submit application with resume URL
+      // Submit application with applicant details
       const { error: applyError } = await supabase
         .from('applications')
         .insert({
           job_id: selectedJobId,
           applicant_email: user.email || '',
-          applicant_name: user.user_metadata?.full_name || 'Anonymous',
+          applicant_name: applicantName,
           applicant_resume: resumeUrl,
-          status: 'pending'
+          status: 'pending',
+          notes: JSON.stringify({
+            address: applicantAddress,
+            contact: applicantContact,
+            location: applicantLocation
+          })
         });
       
       if (applyError) throw applyError;
@@ -305,34 +374,99 @@ const JobsListView = () => {
         ))}
       </div>
 
-      {/* Resume URL Dialog */}
+      {/* Enhanced Application Dialog */}
       <Dialog open={applyDialogOpen} onOpenChange={setApplyDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Submit your application</DialogTitle>
             <DialogDescription>
-              Please provide a URL to your resume to complete your application.
+              Please provide your details to complete your application.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="resume-url" className="col-span-4">
-                Resume URL
-              </Label>
-              <Input
-                id="resume-url"
-                placeholder="https://example.com/my-resume.pdf"
-                className="col-span-4"
-                value={resumeUrl}
-                onChange={(e) => setResumeUrl(e.target.value)}
-              />
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <Label htmlFor="applicant-name" className="required">
+                  Full Name <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="applicant-name"
+                  placeholder="Enter your full name"
+                  value={applicantName}
+                  onChange={(e) => setApplicantName(e.target.value)}
+                  className="mt-1"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="applicant-address" className="required">
+                  Address <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="applicant-address"
+                  placeholder="Enter your address"
+                  value={applicantAddress}
+                  onChange={(e) => setApplicantAddress(e.target.value)}
+                  className="mt-1"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="applicant-contact" className="required">
+                  Contact Number <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="applicant-contact"
+                  placeholder="Enter your contact number"
+                  value={applicantContact}
+                  onChange={(e) => setApplicantContact(e.target.value)}
+                  className="mt-1"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="applicant-location" className="required">
+                  Location <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="applicant-location"
+                  placeholder="Enter your location (city, state)"
+                  value={applicantLocation}
+                  onChange={(e) => setApplicantLocation(e.target.value)}
+                  className="mt-1"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="resume-url" className="required">
+                  Resume URL <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="resume-url"
+                  placeholder="https://example.com/my-resume.pdf"
+                  value={resumeUrl}
+                  onChange={(e) => setResumeUrl(e.target.value)}
+                  className="mt-1"
+                  required
+                />
+              </div>
             </div>
           </div>
           <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setApplyDialogOpen(false)}
+            >
+              Cancel
+            </Button>
             <Button 
               type="submit" 
               onClick={submitApplication}
-              disabled={!resumeUrl.trim() || isSubmitting}
+              disabled={isSubmitting}
             >
               {isSubmitting ? (
                 <>
