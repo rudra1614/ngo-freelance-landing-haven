@@ -35,6 +35,14 @@ interface Application {
   applicant_email: string;
   status: string;
   created_at: string;
+  applicant_resume: string | null;
+  notes: string | null;
+}
+
+interface ApplicantDetails {
+  address?: string;
+  contact?: string;
+  location?: string;
 }
 
 const JobDetailsDialog: React.FC<JobDetailsDialogProps> = ({ job, isOpen, onClose }) => {
@@ -64,6 +72,17 @@ const JobDetailsDialog: React.FC<JobDetailsDialogProps> = ({ job, isOpen, onClos
 
     fetchApplications();
   }, [job, isOpen]);
+
+  const parseApplicantDetails = (notes: string | null): ApplicantDetails => {
+    if (!notes) return {};
+    
+    try {
+      return JSON.parse(notes);
+    } catch (e) {
+      console.error('Error parsing applicant details:', e);
+      return {};
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -123,29 +142,55 @@ const JobDetailsDialog: React.FC<JobDetailsDialogProps> = ({ job, isOpen, onClos
                     <tr>
                       <th className="text-left p-2">Name</th>
                       <th className="text-left p-2">Email</th>
+                      <th className="text-left p-2">Contact</th>
+                      <th className="text-left p-2">Location</th>
                       <th className="text-left p-2">Status</th>
-                      <th className="text-left p-2">Date</th>
+                      <th className="text-left p-2">Details</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {applications.map((app) => (
-                      <tr key={app.id} className="border-b">
-                        <td className="p-2">{app.applicant_name}</td>
-                        <td className="p-2">{app.applicant_email}</td>
-                        <td className="p-2">
-                          <Badge variant={
-                            app.status === 'pending' ? 'outline' :
-                            app.status === 'approved' ? 'default' :
-                            app.status === 'rejected' ? 'destructive' : 'secondary'
-                          }>
-                            {app.status}
-                          </Badge>
-                        </td>
-                        <td className="p-2 text-gray-500">
-                          {new Date(app.created_at).toLocaleDateString()}
-                        </td>
-                      </tr>
-                    ))}
+                    {applications.map((app) => {
+                      const details = parseApplicantDetails(app.notes);
+                      return (
+                        <tr key={app.id} className="border-b">
+                          <td className="p-2">{app.applicant_name}</td>
+                          <td className="p-2">{app.applicant_email}</td>
+                          <td className="p-2">{details.contact || '-'}</td>
+                          <td className="p-2">{details.location || '-'}</td>
+                          <td className="p-2">
+                            <Badge variant={
+                              app.status === 'pending' ? 'outline' :
+                              app.status === 'approved' ? 'default' :
+                              app.status === 'rejected' ? 'destructive' : 'secondary'
+                            }>
+                              {app.status}
+                            </Badge>
+                          </td>
+                          <td className="p-2">
+                            <details className="text-xs">
+                              <summary className="cursor-pointer text-blue-500 hover:text-blue-700">View More</summary>
+                              <div className="bg-gray-50 p-2 rounded mt-1">
+                                <p><strong>Date Applied:</strong> {new Date(app.created_at).toLocaleDateString()}</p>
+                                {details.address && <p><strong>Address:</strong> {details.address}</p>}
+                                {app.applicant_resume && (
+                                  <p>
+                                    <strong>Resume:</strong>{' '}
+                                    <a 
+                                      href={app.applicant_resume} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="text-blue-500 hover:underline"
+                                    >
+                                      View Resume
+                                    </a>
+                                  </p>
+                                )}
+                              </div>
+                            </details>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
