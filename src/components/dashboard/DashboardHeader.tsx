@@ -18,17 +18,22 @@ const DashboardHeader = () => {
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        throw error;
+      }
+      
       toast({
         title: 'Logged out',
         description: 'You have been successfully logged out',
       });
       navigate('/login');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Logout error:', error);
       toast({
         title: 'Error',
-        description: 'Failed to log out',
+        description: error.message || 'Failed to log out',
         variant: 'destructive',
       });
     }
