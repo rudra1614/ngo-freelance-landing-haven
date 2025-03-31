@@ -1,12 +1,7 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
-import { toast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import PersonalInfoForm from '@/components/dashboard/PersonalInfoForm';
 import EducationForm from '@/components/dashboard/EducationForm';
 import ExperienceForm from '@/components/dashboard/ExperienceForm';
@@ -15,38 +10,12 @@ import AppliedJobs from '@/components/dashboard/AppliedJobs';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 
 const Dashboard = () => {
-  const navigate = useNavigate();
-
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast({
-        title: 'Logged out',
-        description: 'You have been successfully logged out',
-      });
-      navigate('/login');
-    } catch (error) {
-      console.error('Logout error:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to log out',
-        variant: 'destructive',
-      });
-    }
-  };
-
   return (
     <div className="bg-gray-50 min-h-screen">
       <DashboardHeader />
       
       <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Personal Dashboard</h1>
-          <Button variant="outline" onClick={handleLogout} className="gap-2">
-            <LogOut className="h-4 w-4" />
-            Log Out
-          </Button>
-        </div>
+        <h1 className="text-2xl font-bold mb-6">Personal Dashboard</h1>
         
         <Tabs defaultValue="personal" className="space-y-4">
           <TabsList className="grid w-full grid-cols-5">

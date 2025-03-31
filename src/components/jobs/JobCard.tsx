@@ -8,7 +8,6 @@ interface Job {
   id: string;
   title: string;
   organization_id: string;
-  description: string;
   location: string | null;
   salary_range: string | null;
   requirements: string | null;
@@ -30,8 +29,8 @@ const JobCard: React.FC<JobCardProps> = ({ job, onSave }) => {
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow h-full">
-      <CardContent className="p-6 flex flex-col h-full">
+    <Card className="hover:shadow-md transition-shadow">
+      <CardContent className="p-6">
         <div className="flex justify-between items-start mb-4">
           <div className="flex items-center">
             <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mr-3 overflow-hidden">
@@ -39,7 +38,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onSave }) => {
             </div>
             <div>
               <h3 className="font-semibold text-lg">{job.organization?.name || 'Organization'}</h3>
-              <p className="text-gray-500 text-sm">{job.location || 'Remote'}</p>
+              <p className="text-gray-500 text-sm">{job.location || 'Location not specified'}</p>
             </div>
           </div>
           <Button 
@@ -57,17 +56,15 @@ const JobCard: React.FC<JobCardProps> = ({ job, onSave }) => {
         
         <h2 className="text-xl font-bold mb-2">{job.title}</h2>
         
-        <div className="space-y-4 mb-4 flex-grow">
+        <div className="space-y-4 mb-4">
           <p className="text-gray-600">
-            {job.description 
-              ? truncateText(job.description, 150)
-              : job.requirements 
-                ? truncateText(job.requirements, 150)
-                : "Job description not available."}
+            {job.requirements 
+              ? truncateText(job.requirements, 150)
+              : "Job description not available."}
           </p>
         </div>
         
-        <div className="flex flex-wrap gap-2 mt-auto">
+        <div className="flex flex-wrap gap-2 mt-4">
           <div className="flex items-center text-sm bg-gray-100 px-3 py-1 rounded-full">
             <MapPinIcon className="h-4 w-4 mr-1 text-gray-500" />
             <span>{job.location || 'Remote'}</span>
@@ -76,12 +73,10 @@ const JobCard: React.FC<JobCardProps> = ({ job, onSave }) => {
             <BriefcaseIcon className="h-4 w-4 mr-1 text-gray-500" />
             <span>Full-time</span>
           </div>
-          {job.salary_range && (
-            <div className="flex items-center text-sm bg-gray-100 px-3 py-1 rounded-full">
-              <DollarSignIcon className="h-4 w-4 mr-1 text-gray-500" />
-              <span>{job.salary_range}</span>
-            </div>
-          )}
+          <div className="flex items-center text-sm bg-gray-100 px-3 py-1 rounded-full">
+            <DollarSignIcon className="h-4 w-4 mr-1 text-gray-500" />
+            <span>{job.salary_range || 'Salary not specified'}</span>
+          </div>
         </div>
       </CardContent>
     </Card>

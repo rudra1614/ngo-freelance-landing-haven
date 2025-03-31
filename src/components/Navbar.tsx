@@ -15,8 +15,8 @@ const Navbar = () => {
         <div className="hidden md:flex space-x-8">
           <Link to="/" className="text-white hover:text-blue-400 transition-colors">Home</Link>
           <Link to="/jobs" className="text-white hover:text-blue-400 transition-colors">Jobs</Link>
-          <Link to="/about" className="text-white hover:text-blue-400 transition-colors">About</Link>
-          <Link to="/support" className="text-white hover:text-blue-400 transition-colors">Support</Link>
+          <Link to="/" className="text-white hover:text-blue-400 transition-colors">Support</Link>
+          <Link to="/" className="text-white hover:text-blue-400 transition-colors">About</Link>
           <Link to="/" className="text-white hover:text-blue-400 transition-colors">Donate</Link>
         </div>
       </div>
@@ -49,9 +49,9 @@ const Navbar = () => {
             <div className="flex flex-col space-y-6">
               <Link to="/" className="text-white hover:text-blue-400 transition-colors text-lg">Home</Link>
               <Link to="/jobs" className="text-white hover:text-blue-400 transition-colors text-lg">Jobs</Link>
-              <Link to="/about" className="text-white hover:text-blue-400 transition-colors text-lg">About</Link>
+              <Link to="/faqs" className="text-white hover:text-blue-400 transition-colors text-lg">FAQs</Link>
               <Link to="/support" className="text-white hover:text-blue-400 transition-colors text-lg">Support</Link>
-              <Link to="/donate" className="text-white hover:text-blue-400 transition-colors text-lg">Donate</Link>
+              <Link to="/about" className="text-white hover:text-blue-400 transition-colors text-lg">About</Link>
               <div className="pt-4 border-t border-gray-700">
                 <Link to="/login">
                   <Button variant="outline" className="w-full mb-3 border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white">

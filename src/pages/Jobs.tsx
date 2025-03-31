@@ -1,41 +1,92 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import JobCard from '@/components/jobs/JobCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
-import JobsSearch from '@/components/jobs/JobsSearch';
-import JobsTabContent from '@/components/jobs/JobsTabContent';
-import { useJobs } from '@/hooks/useJobs';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { SearchIcon } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+
+interface Job {
+  id: string;
+  title: string;
+  organization_id: string;
+  location: string | null;
+  salary_range: string | null;
+  requirements: string | null;
+  organization: {
+    name: string;
+  } | null;
+}
 
 const Jobs = () => {
-  const { 
-    filteredJobs, 
-    loading, 
-    error,
-    searchQuery, 
-    setSearchQuery, 
-    getRemoteJobs,
-    refreshJobs 
-  } = useJobs();
-  
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const [currentTab, setCurrentTab] = useState('latest');
   const navigate = useNavigate();
 
-  // Handle saving a job (would be connected to user's profile)
+  useEffect(() => {
+    fetchJobs();
+  }, []);
+
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredJobs(jobs);
+    } else {
+      const filtered = jobs.filter(job => 
+        job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (job.organization?.name && job.organization.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (job.location && job.location.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+      setFilteredJobs(filtered);
+    }
+  }, [searchQuery, jobs]);
+
+  const fetchJobs = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('jobs')
+        .select(`
+          *,
+          organization:organizations (name)
+        `)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      console.log('Fetched jobs:', data);
+      setJobs(data || []);
+      setFilteredJobs(data || []);
+    } catch (error) {
+      console.error('Error fetching jobs:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load jobs',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSaveJob = (jobId: string) => {
+    // Would normally save to user's saved jobs
     toast({
       title: 'Job saved',
       description: 'This job has been saved to your profile',
     });
   };
 
-  // Handle applying to a job - redirects to job details or login
   const handleApplyToJob = async (jobId: string) => {
     try {
       const { data: session } = await supabase.auth.getSession();
@@ -50,7 +101,7 @@ const Jobs = () => {
         return;
       }
       
-      // Navigate to the job details page
+      // Navigate to the job details page or directly apply
       navigate(`/jobs/${jobId}`);
     } catch (error) {
       console.error('Error:', error);
@@ -62,34 +113,25 @@ const Jobs = () => {
     }
   };
 
-  // Handle refreshing jobs data
-  const handleRefresh = () => {
-    refreshJobs();
-    toast({
-      title: 'Jobs refreshed',
-      description: 'The latest job listings have been loaded',
-    });
-  };
-
   return (
     <div className="min-h-screen bg-ngo-darkblue flex flex-col">
       <Navbar />
       
       <main className="flex-grow py-12 bg-gray-100">
         <div className="container mx-auto px-4">
-          <JobsSearch 
-            searchQuery={searchQuery} 
-            setSearchQuery={setSearchQuery} 
-            onRefresh={handleRefresh}
-          />
-
-          {error && (
-            <Alert variant="destructive" className="mb-6">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold mb-4">Find Your Opportunity</h1>
+            <div className="relative">
+              <Input
+                type="text"
+                placeholder="Search jobs by title, organization or location..."
+                className="pl-10 py-6 pr-4 rounded-md w-full"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            </div>
+          </div>
 
           <Tabs defaultValue="latest" className="w-full" onValueChange={setCurrentTab}>
             <TabsList className="mb-6">
@@ -99,34 +141,58 @@ const Jobs = () => {
             </TabsList>
             
             <TabsContent value="latest" className="space-y-6">
-              <JobsTabContent 
-                jobs={filteredJobs} 
-                loading={loading} 
-                onSave={handleSaveJob} 
-                onApply={handleApplyToJob} 
-              />
-              
-              {filteredJobs.length > 0 && (
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious href="#" />
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationLink href="#" isActive>1</PaginationLink>
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationLink href="#">2</PaginationLink>
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationLink href="#">3</PaginationLink>
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationNext href="#" />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
+              {loading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {[1, 2, 3, 4].map((_, index) => (
+                    <Card key={index} className="h-64 animate-pulse">
+                      <CardContent className="p-6">
+                        <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                        <div className="h-4 bg-gray-200 rounded w-full mb-4"></div>
+                        <div className="h-10 bg-gray-200 rounded w-full mt-auto"></div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : filteredJobs.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {filteredJobs.map((job) => (
+                    <div key={job.id} onClick={() => handleApplyToJob(job.id)} className="cursor-pointer">
+                      <JobCard 
+                        job={job} 
+                        onSave={() => handleSaveJob(job.id)} 
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <h3 className="text-xl font-medium">No jobs found</h3>
+                  <p className="text-gray-500 mt-2">
+                    Try adjusting your search criteria or check back later
+                  </p>
+                </div>
               )}
+              
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious href="#" />
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationLink href="#" isActive>1</PaginationLink>
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationLink href="#">2</PaginationLink>
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationLink href="#">3</PaginationLink>
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationNext href="#" />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             </TabsContent>
             
             <TabsContent value="popular">
@@ -139,13 +205,12 @@ const Jobs = () => {
             </TabsContent>
             
             <TabsContent value="remote">
-              <JobsTabContent 
-                jobs={getRemoteJobs()} 
-                loading={loading} 
-                onSave={handleSaveJob} 
-                onApply={handleApplyToJob}
-                loadingSkeletonCount={2}
-              />
+              <div className="text-center py-12">
+                <h3 className="text-xl font-medium">Remote jobs coming soon</h3>
+                <p className="text-gray-500 mt-2">
+                  Check back later for remote job opportunities
+                </p>
+              </div>
             </TabsContent>
           </Tabs>
         </div>
