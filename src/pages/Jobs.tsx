@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,27 +10,32 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import JobsSearch from '@/components/jobs/JobsSearch';
 import JobsTabContent from '@/components/jobs/JobsTabContent';
 import { useJobs } from '@/hooks/useJobs';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 const Jobs = () => {
   const { 
     filteredJobs, 
     loading, 
+    error,
     searchQuery, 
     setSearchQuery, 
-    getRemoteJobs 
+    getRemoteJobs,
+    refreshJobs 
   } = useJobs();
   
-  const [currentTab, setCurrentTab] = React.useState('latest');
+  const [currentTab, setCurrentTab] = useState('latest');
   const navigate = useNavigate();
 
+  // Handle saving a job (would be connected to user's profile)
   const handleSaveJob = (jobId: string) => {
-    // Would normally save to user's saved jobs
     toast({
       title: 'Job saved',
       description: 'This job has been saved to your profile',
     });
   };
 
+  // Handle applying to a job - redirects to job details or login
   const handleApplyToJob = async (jobId: string) => {
     try {
       const { data: session } = await supabase.auth.getSession();
@@ -45,7 +50,7 @@ const Jobs = () => {
         return;
       }
       
-      // Navigate to the job details page or directly apply
+      // Navigate to the job details page
       navigate(`/jobs/${jobId}`);
     } catch (error) {
       console.error('Error:', error);
@@ -57,13 +62,34 @@ const Jobs = () => {
     }
   };
 
+  // Handle refreshing jobs data
+  const handleRefresh = () => {
+    refreshJobs();
+    toast({
+      title: 'Jobs refreshed',
+      description: 'The latest job listings have been loaded',
+    });
+  };
+
   return (
     <div className="min-h-screen bg-ngo-darkblue flex flex-col">
       <Navbar />
       
       <main className="flex-grow py-12 bg-gray-100">
         <div className="container mx-auto px-4">
-          <JobsSearch searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+          <JobsSearch 
+            searchQuery={searchQuery} 
+            setSearchQuery={setSearchQuery} 
+            onRefresh={handleRefresh}
+          />
+
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
           <Tabs defaultValue="latest" className="w-full" onValueChange={setCurrentTab}>
             <TabsList className="mb-6">
@@ -80,25 +106,27 @@ const Jobs = () => {
                 onApply={handleApplyToJob} 
               />
               
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious href="#" />
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationLink href="#" isActive>1</PaginationLink>
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationLink href="#">2</PaginationLink>
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationLink href="#">3</PaginationLink>
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationNext href="#" />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
+              {filteredJobs.length > 0 && (
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious href="#" />
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationLink href="#" isActive>1</PaginationLink>
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationLink href="#">2</PaginationLink>
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationLink href="#">3</PaginationLink>
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationNext href="#" />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
             </TabsContent>
             
             <TabsContent value="popular">

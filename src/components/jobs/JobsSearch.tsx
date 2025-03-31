@@ -1,17 +1,36 @@
 
 import React from 'react';
 import { Input } from '@/components/ui/input';
-import { SearchIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { SearchIcon, RefreshCw } from 'lucide-react';
 
 interface JobsSearchProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  onRefresh?: () => void;
 }
 
-const JobsSearch: React.FC<JobsSearchProps> = ({ searchQuery, setSearchQuery }) => {
+const JobsSearch: React.FC<JobsSearchProps> = ({ 
+  searchQuery, 
+  setSearchQuery,
+  onRefresh 
+}) => {
   return (
     <div className="mb-8">
-      <h1 className="text-3xl font-bold mb-4">Find Your Opportunity</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-3xl font-bold">Find Your Opportunity</h1>
+        {onRefresh && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={onRefresh}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Refresh
+          </Button>
+        )}
+      </div>
       <div className="relative">
         <Input
           type="text"

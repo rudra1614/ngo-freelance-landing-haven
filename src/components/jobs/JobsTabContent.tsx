@@ -23,6 +23,7 @@ interface JobsTabContentProps {
   onSave: (jobId: string) => void;
   onApply: (jobId: string) => void;
   loadingSkeletonCount?: number;
+  emptyStateMessage?: string;
 }
 
 const JobsTabContent: React.FC<JobsTabContentProps> = ({ 
@@ -30,7 +31,8 @@ const JobsTabContent: React.FC<JobsTabContentProps> = ({
   loading, 
   onSave, 
   onApply,
-  loadingSkeletonCount = 4 
+  loadingSkeletonCount = 4,
+  emptyStateMessage = 'There are currently no jobs available in this category. Please check back later or try another category.'
 }) => {
   return (
     <div className="space-y-6">
@@ -41,8 +43,7 @@ const JobsTabContent: React.FC<JobsTabContentProps> = ({
           <AlertCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No jobs found</h3>
           <p className="text-gray-500">
-            There are currently no jobs available in this category.
-            Please check back later or try another category.
+            {emptyStateMessage}
           </p>
         </div>
       ) : (
