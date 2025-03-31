@@ -12,6 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { SearchIcon, MapPinIcon, Briefcase } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface Job {
   id: string;
@@ -20,6 +21,7 @@ interface Job {
   location: string | null;
   salary_range: string | null;
   requirements: string | null;
+  description: string;
   organization: {
     name: string;
   } | null;
@@ -69,7 +71,7 @@ const Jobs = () => {
         query = query.ilike('location', '%remote%').order('created_at', { ascending: false });
       }
       
-      const { data, error, count } = await query;
+      const { data, error } = await query;
 
       if (error) {
         throw error;
@@ -162,12 +164,25 @@ const Jobs = () => {
               {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {[1, 2, 3, 4].map((_, index) => (
-                    <Card key={index} className="h-64 animate-pulse">
+                    <Card key={index} className="h-64">
                       <CardContent className="p-6">
-                        <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-                        <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-                        <div className="h-4 bg-gray-200 rounded w-full mb-4"></div>
-                        <div className="h-10 bg-gray-200 rounded w-full mt-auto"></div>
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="flex items-center">
+                            <Skeleton className="w-12 h-12 rounded-full" />
+                            <div className="ml-3">
+                              <Skeleton className="h-5 w-40 mb-1" />
+                              <Skeleton className="h-4 w-20" />
+                            </div>
+                          </div>
+                        </div>
+                        <Skeleton className="h-6 w-3/4 mb-4" />
+                        <Skeleton className="h-4 w-full mb-3" />
+                        <Skeleton className="h-4 w-5/6 mb-6" />
+                        <div className="flex flex-wrap gap-2">
+                          <Skeleton className="h-8 w-20 rounded-full" />
+                          <Skeleton className="h-8 w-24 rounded-full" />
+                          <Skeleton className="h-8 w-32 rounded-full" />
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
@@ -230,10 +245,10 @@ const Jobs = () => {
                   {[1, 2].map((_, index) => (
                     <Card key={index} className="h-64">
                       <CardContent className="p-6">
-                        <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-                        <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-                        <div className="h-4 bg-gray-200 rounded w-full mb-4"></div>
-                        <div className="h-10 bg-gray-200 rounded w-full mt-auto"></div>
+                        <Skeleton className="h-6 w-3/4 mb-4" />
+                        <Skeleton className="h-4 w-1/2 mb-2" />
+                        <Skeleton className="h-4 w-full mb-4" />
+                        <Skeleton className="h-10 w-full mt-auto" />
                       </CardContent>
                     </Card>
                   ))}
