@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
@@ -24,7 +23,8 @@ import {
   Briefcase, 
   MessageSquare, 
   DownloadCloud,
-  FileText
+  FileText,
+  ExternalLink
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -67,7 +67,6 @@ const ApplicationsList: React.FC<ApplicationsListProps> = ({ organizationId }) =
     try {
       setLoading(true);
       
-      // First, get all jobs for this organization
       const { data: jobs, error: jobsError } = await supabase
         .from('jobs')
         .select('id, title')
@@ -82,7 +81,6 @@ const ApplicationsList: React.FC<ApplicationsListProps> = ({ organizationId }) =
       
       const jobIds = jobs.map(job => job.id);
       
-      // Then get applications for these jobs
       const { data, error } = await supabase
         .from('applications')
         .select('*')
@@ -91,7 +89,6 @@ const ApplicationsList: React.FC<ApplicationsListProps> = ({ organizationId }) =
       
       if (error) throw error;
       
-      // Add job title to each application
       const enhancedApplications = data?.map(app => {
         const job = jobs.find(j => j.id === app.job_id);
         return {
@@ -127,7 +124,6 @@ const ApplicationsList: React.FC<ApplicationsListProps> = ({ organizationId }) =
         description: `Application has been ${status}`,
       });
 
-      // Refresh applications list
       fetchApplications();
     } catch (error) {
       console.error('Error updating application status:', error);
@@ -360,11 +356,27 @@ const ApplicationsList: React.FC<ApplicationsListProps> = ({ organizationId }) =
               {selectedApplication.applicant_resume && (
                 <div>
                   <Label>Resume</Label>
-                  <div className="mt-2">
-                    <Button variant="secondary" size="sm" className="gap-2">
-                      <DownloadCloud className="h-4 w-4" />
-                      <span>Download Resume</span>
+                  <div className="mt-2 flex items-center space-x-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="gap-2"
+                      asChild
+                    >
+                      <a 
+                        href={selectedApplication.applicant_resume} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        <span>View Resume</span>
+                      </a>
                     </Button>
+                    <Input 
+                      value={selectedApplication.applicant_resume} 
+                      readOnly 
+                      className="flex-1"
+                    />
                   </div>
                 </div>
               )}

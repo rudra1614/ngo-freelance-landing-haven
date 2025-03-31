@@ -8,6 +8,9 @@ import { MapPin, Briefcase, DollarSign, ArrowRight, Loader2, SendIcon } from 'lu
 import { Skeleton } from '@/components/ui/skeleton';
 import { useNavigate } from 'react-router-dom';
 import JobCard from '@/components/jobs/JobCard';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 interface Organization {
   id: string;
@@ -31,6 +34,10 @@ const JobsListView = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [applyDialogOpen, setApplyDialogOpen] = useState(false);
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [resumeUrl, setResumeUrl] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -74,8 +81,38 @@ const JobsListView = () => {
     fetchJobs();
   }, []);
 
-  const handleApply = async (jobId: string) => {
+  const handleApply = (jobId: string) => {
+    // Get current user
+    supabase.auth.getUser().then(({ data: { user }, error }) => {
+      if (error || !user) {
+        toast({
+          title: 'Authentication required',
+          description: 'Please log in to apply for jobs',
+          variant: 'destructive',
+        });
+        navigate('/login');
+        return;
+      }
+      
+      // Set selected job and open the dialog
+      setSelectedJobId(jobId);
+      setResumeUrl('');
+      setApplyDialogOpen(true);
+    }).catch(error => {
+      console.error('Error checking authentication:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to verify authentication status',
+        variant: 'destructive',
+      });
+    });
+  };
+
+  const submitApplication = async () => {
+    if (!selectedJobId) return;
+    
     try {
+      setIsSubmitting(true);
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -93,7 +130,7 @@ const JobsListView = () => {
       const { data: existingApplications, error: checkError } = await supabase
         .from('applications')
         .select('*')
-        .eq('job_id', jobId)
+        .eq('job_id', selectedJobId)
         .eq('applicant_email', user.email);
       
       if (checkError) throw checkError;
@@ -103,16 +140,18 @@ const JobsListView = () => {
           title: 'Already applied',
           description: 'You have already applied for this job',
         });
+        setApplyDialogOpen(false);
         return;
       }
       
-      // Submit application
+      // Submit application with resume URL
       const { error: applyError } = await supabase
         .from('applications')
         .insert({
-          job_id: jobId,
+          job_id: selectedJobId,
           applicant_email: user.email || '',
-          applicant_name: user.user_metadata.full_name || 'Anonymous',
+          applicant_name: user.user_metadata?.full_name || 'Anonymous',
+          applicant_resume: resumeUrl,
           status: 'pending'
         });
       
@@ -122,6 +161,7 @@ const JobsListView = () => {
         title: 'Application submitted',
         description: 'Your job application has been submitted successfully',
       });
+      setApplyDialogOpen(false);
     } catch (error: any) {
       console.error('Error applying for job:', error);
       toast({
@@ -129,6 +169,8 @@ const JobsListView = () => {
         description: error.message || 'Failed to apply for this job',
         variant: 'destructive',
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -262,6 +304,47 @@ const JobsListView = () => {
           </Card>
         ))}
       </div>
+
+      {/* Resume URL Dialog */}
+      <Dialog open={applyDialogOpen} onOpenChange={setApplyDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Submit your application</DialogTitle>
+            <DialogDescription>
+              Please provide a URL to your resume to complete your application.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="resume-url" className="col-span-4">
+                Resume URL
+              </Label>
+              <Input
+                id="resume-url"
+                placeholder="https://example.com/my-resume.pdf"
+                className="col-span-4"
+                value={resumeUrl}
+                onChange={(e) => setResumeUrl(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              type="submit" 
+              onClick={submitApplication}
+              disabled={!resumeUrl.trim() || isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting
+                </>
+              ) : (
+                'Submit Application'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
