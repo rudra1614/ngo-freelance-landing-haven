@@ -20,6 +20,7 @@ export const useJobs = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -43,6 +44,7 @@ export const useJobs = () => {
   const fetchJobs = async () => {
     try {
       setLoading(true);
+      setError(null);
       
       // Fetch all active jobs with their organization information
       const { data, error } = await supabase
@@ -64,8 +66,8 @@ export const useJobs = () => {
         setJobs(data);
         setFilteredJobs(data);
       } else {
-        console.log('No active jobs found, trying to fetch all jobs');
-        // If no active jobs found, fetch all jobs (for development purposes)
+        console.log('No active jobs found, fetching all jobs');
+        // If no active jobs found, fetch all jobs
         const { data: allJobs, error: allJobsError } = await supabase
           .from('jobs')
           .select(`
@@ -80,16 +82,21 @@ export const useJobs = () => {
         setJobs(allJobs || []);
         setFilteredJobs(allJobs || []);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching jobs:', error);
+      setError(error.message || 'Failed to load jobs');
       toast({
         title: 'Error',
-        description: 'Failed to load jobs',
+        description: 'Failed to load jobs. Please try again later.',
         variant: 'destructive',
       });
     } finally {
       setLoading(false);
     }
+  };
+
+  const refreshJobs = () => {
+    fetchJobs();
   };
 
   const getRemoteJobs = () => {
@@ -104,8 +111,10 @@ export const useJobs = () => {
     jobs,
     filteredJobs,
     loading,
+    error,
     searchQuery,
     setSearchQuery,
-    getRemoteJobs
+    getRemoteJobs,
+    refreshJobs
   };
 };
