@@ -14,12 +14,14 @@ import OrganizationDashboard from "./pages/OrganizationDashboard";
 import Dashboard from "./pages/Dashboard";
 import About from "./pages/About";
 import Support from "./pages/Support";
+import AnimatedCursor from "./components/AnimatedCursor";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <AnimatedCursor />
       <Toaster />
       <Sonner />
       <BrowserRouter>
