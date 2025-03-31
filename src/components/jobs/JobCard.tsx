@@ -30,8 +30,8 @@ const JobCard: React.FC<JobCardProps> = ({ job, onSave }) => {
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-6">
+    <Card className="hover:shadow-md transition-shadow h-full">
+      <CardContent className="p-6 flex flex-col h-full">
         <div className="flex justify-between items-start mb-4">
           <div className="flex items-center">
             <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mr-3 overflow-hidden">
@@ -39,7 +39,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onSave }) => {
             </div>
             <div>
               <h3 className="font-semibold text-lg">{job.organization?.name || 'Organization'}</h3>
-              <p className="text-gray-500 text-sm">{job.location || 'Location not specified'}</p>
+              <p className="text-gray-500 text-sm">{job.location || 'Remote'}</p>
             </div>
           </div>
           <Button 
@@ -57,7 +57,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onSave }) => {
         
         <h2 className="text-xl font-bold mb-2">{job.title}</h2>
         
-        <div className="space-y-4 mb-4">
+        <div className="space-y-4 mb-4 flex-grow">
           <p className="text-gray-600">
             {job.description 
               ? truncateText(job.description, 150)
@@ -67,7 +67,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onSave }) => {
           </p>
         </div>
         
-        <div className="flex flex-wrap gap-2 mt-4">
+        <div className="flex flex-wrap gap-2 mt-auto">
           <div className="flex items-center text-sm bg-gray-100 px-3 py-1 rounded-full">
             <MapPinIcon className="h-4 w-4 mr-1 text-gray-500" />
             <span>{job.location || 'Remote'}</span>

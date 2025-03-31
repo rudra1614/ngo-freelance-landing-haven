@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -54,6 +53,8 @@ const Jobs = () => {
   const fetchJobs = async () => {
     try {
       setLoading(true);
+      
+      // Fetch all active jobs with their organization information
       const { data, error } = await supabase
         .from('jobs')
         .select(`
@@ -67,13 +68,14 @@ const Jobs = () => {
         throw error;
       }
 
-      console.log('Fetched jobs:', data);
+      console.log('Fetched jobs from Jobs page:', data);
       
       if (data && data.length > 0) {
         setJobs(data);
         setFilteredJobs(data);
       } else {
-        // If no jobs found with active status, try fetching all jobs for testing
+        console.log('No active jobs found, trying to fetch all jobs');
+        // If no active jobs found, fetch all jobs (for development purposes)
         const { data: allJobs, error: allJobsError } = await supabase
           .from('jobs')
           .select(`

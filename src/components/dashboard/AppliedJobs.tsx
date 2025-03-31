@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Eye, FileText, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface Application {
   id: string;
@@ -54,8 +55,15 @@ const AppliedJobs = () => {
 
       if (organizationError || !organizationData) {
         console.error('Error fetching organization:', organizationError);
+        toast({
+          title: 'Error',
+          description: 'Failed to fetch organization details',
+          variant: 'destructive',
+        });
         return;
       }
+
+      console.log('Found organization:', organizationData);
 
       // Get jobs for this organization
       const { data: jobsData, error: jobsError } = await supabase
@@ -65,8 +73,15 @@ const AppliedJobs = () => {
 
       if (jobsError || !jobsData) {
         console.error('Error fetching jobs:', jobsError);
+        toast({
+          title: 'Error',
+          description: 'Failed to fetch job listings',
+          variant: 'destructive',
+        });
         return;
       }
+
+      console.log('Found jobs:', jobsData);
 
       // If there are no jobs, return an empty array
       if (jobsData.length === 0) {
@@ -90,9 +105,15 @@ const AppliedJobs = () => {
 
       if (applicationsError) {
         console.error('Error fetching applications:', applicationsError);
+        toast({
+          title: 'Error',
+          description: 'Failed to fetch applications',
+          variant: 'destructive',
+        });
         return;
       }
 
+      console.log('Found applications:', applicationsData || []);
       setApplications(applicationsData || []);
 
     } catch (error) {
@@ -119,13 +140,13 @@ const AppliedJobs = () => {
         {loading ? (
           <div className="space-y-4">
             {[1, 2, 3].map(i => (
-              <div key={i} className="flex items-center space-x-4 p-4 border rounded-lg animate-pulse">
-                <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+              <div key={i} className="flex items-center space-x-4 p-4 border rounded-lg">
+                <Skeleton className="w-12 h-12 rounded-full" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                  <Skeleton className="h-4 w-1/4" />
+                  <Skeleton className="h-4 w-1/2" />
                 </div>
-                <div className="w-20 h-8 bg-gray-200 rounded"></div>
+                <Skeleton className="w-20 h-8" />
               </div>
             ))}
           </div>
