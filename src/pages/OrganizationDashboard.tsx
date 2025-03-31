@@ -15,7 +15,6 @@ const OrganizationDashboard = () => {
   const [activeTab, setActiveTab] = useState<'jobs' | 'applications' | 'create-job'>('jobs');
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -32,43 +31,20 @@ const OrganizationDashboard = () => {
           .from('organizations')
           .select('id')
           .eq('user_id', session.user.id)
-          .maybeSingle();  // Using maybeSingle instead of single
+          .single();
 
         if (orgError) {
           console.error('Error fetching organization:', orgError);
-          setError('Failed to load organization details');
+          toast({
+            title: 'Error',
+            description: 'Failed to load organization details',
+            variant: 'destructive',
+          });
+          navigate('/organization/login');
           return;
         }
 
-        if (!orgData) {
-          console.log("No organization found, creating one");
-          // Create a default organization if none exists
-          const { data: newOrg, error: createError } = await supabase
-            .from('organizations')
-            .insert([{ 
-              user_id: session.user.id,
-              name: 'Organization',
-              email: session.user.email 
-            }])
-            .select('id')
-            .single();
-            
-          if (createError) {
-            console.error('Error creating organization:', createError);
-            setError('Failed to create organization profile');
-            toast({
-              title: 'Error',
-              description: 'Failed to create organization profile',
-              variant: 'destructive',
-            });
-            return;
-          }
-          
-          setOrganizationId(newOrg.id);
-        } else {
-          setOrganizationId(orgData.id);
-        }
-        
+        setOrganizationId(orgData.id);
         setLoading(false);
       } catch (error) {
         console.error('Auth error:', error);
@@ -83,23 +59,6 @@ const OrganizationDashboard = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded max-w-md text-center">
-          <p className="font-bold">Error</p>
-          <p>{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="mt-4 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded"
-          >
-            Retry
-          </button>
-        </div>
       </div>
     );
   }
