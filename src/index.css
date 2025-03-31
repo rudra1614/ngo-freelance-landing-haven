@@ -120,21 +120,12 @@
   100% { opacity: 0.6; }
 }
 
-@keyframes fade-out {
-  0% { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; transform: scale(0.3); }
-}
-
 .animate-float {
   animation: float 6s ease-in-out infinite;
 }
 
 .animate-pulse-slow {
   animation: pulse 3s ease-in-out infinite;
-}
-
-.animate-fade-out {
-  animation: fade-out 1s forwards;
 }
 
 /* Improved transitions */
