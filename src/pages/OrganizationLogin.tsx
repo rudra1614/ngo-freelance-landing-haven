@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
-import { Briefcase, LogIn, Loader2 } from 'lucide-react';
+import { Briefcase, LogIn, Loader2, Home } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 const OrganizationLogin = () => {
@@ -17,19 +16,17 @@ const OrganizationLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Check if user is already logged in
   useEffect(() => {
     const checkSession = async () => {
       try {
         const { data } = await supabase.auth.getSession();
         if (data.session) {
-          // If there's a valid session, check if organization exists
           const { data: orgData, error: orgError } = await supabase
             .from('organizations')
             .select('id')
             .eq('user_id', data.session.user.id)
-            .maybeSingle(); // Using maybeSingle instead of single to avoid errors
-            
+            .maybeSingle();
+          
           if (orgData && !orgError) {
             navigate('/organization/dashboard');
           }
@@ -58,22 +55,19 @@ const OrganizationLogin = () => {
       }
 
       if (data.user) {
-        // Check if this user has an associated organization
         const { data: orgData, error: orgError } = await supabase
           .from('organizations')
           .select('id, name')
           .eq('user_id', data.user.id)
-          .maybeSingle(); // Using maybeSingle instead of single
+          .maybeSingle();
           
         if (orgError || !orgData) {
           console.log("Creating new organization record");
-          // User is authenticated but has no organization record
           toast({
             title: 'Login Successful',
             description: "You're signed in, but we couldn't find your organization details. Creating one for you now.",
           });
           
-          // Create a minimal organization record
           const { data: newOrg, error: createError } = await supabase
             .from('organizations')
             .insert([
@@ -93,7 +87,6 @@ const OrganizationLogin = () => {
           
           navigate('/organization/dashboard');
         } else {
-          // Success - user and organization exist
           toast({
             title: 'Login Successful',
             description: `Welcome back, ${orgData.name}!`
@@ -115,9 +108,18 @@ const OrganizationLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <Card className="border-gray-800 bg-gray-800 text-white shadow-xl">
+    <div className="min-h-screen bg-gray-900 flex flex-col items-center px-4">
+      <div className="w-full flex justify-start p-4">
+        <Button variant="ghost" size="sm" asChild className="text-white hover:text-blue-300">
+          <Link to="/">
+            <Home className="h-5 w-5 mr-2" />
+            Back to Home
+          </Link>
+        </Button>
+      </div>
+      
+      <div className="w-full max-w-md flex-grow flex items-center justify-center">
+        <Card className="border-gray-800 bg-gray-800 text-white shadow-xl w-full">
           <CardHeader className="space-y-1">
             <div className="flex items-center justify-center mb-4">
               <Briefcase className="h-12 w-12 text-blue-500" />
