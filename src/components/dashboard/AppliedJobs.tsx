@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -15,27 +14,25 @@ import { Badge } from '@/components/ui/badge';
 import { Check, Clock, X, Eye } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-// Define simple flat types to avoid circular references
-interface Job {
-  id: string;
-  title: string;
-  location: string | null;
-}
-
+// Define simple flat types instead of nested types to avoid circular references
 interface Organization {
   name: string | null;
 }
 
+interface Job {
+  id: string;
+  title: string;
+  location: string | null;
+  organization: Organization | null;
+}
+
+// Simplified application type with no nested structures
 interface Application {
   id: string;
   job_id: string;
   status: string;
   created_at: string;
-  job: {
-    title: string;
-    location: string | null;
-    organization: Organization | null;
-  } | null;
+  applicant_id: string;
 }
 
 // Flattened application data for rendering
@@ -79,7 +76,7 @@ const fetchApplications = async (): Promise<FlattenedApplication[]> => {
   }
   
   // Transform the nested data into a flat structure
-  return (data || []).map((item: Application) => ({
+  return (data || []).map((item: any) => ({
     id: item.id,
     job_id: item.job_id,
     status: item.status,
