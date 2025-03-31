@@ -15,18 +15,36 @@ import { Badge } from '@/components/ui/badge';
 import { Check, Clock, X, Eye } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-// Simplified type structure to avoid circular references
+// Interface for job data
+interface Job {
+  title: string;
+  location: string | null;
+  organization: {
+    name: string | null;
+  } | null;
+}
+
+// Base application interface without nested structures
 interface Application {
   id: string;
   job_id: string;
   status: string;
   created_at: string;
-  job_title: string;
-  organization_name: string | null;
-  job_location: string | null;
+  job: Job | null;
 }
 
-const fetchApplications = async (): Promise<Application[]> => {
+// Flattened application data for rendering
+interface FlattenedApplication {
+  id: string;
+  job_id: string;
+  status: string;
+  created_at: string;
+  job_title: string;
+  organization_name: string;
+  job_location: string;
+}
+
+const fetchApplications = async (): Promise<FlattenedApplication[]> => {
   const { data: session } = await supabase.auth.getSession();
   
   if (!session?.session?.user) {
@@ -56,7 +74,7 @@ const fetchApplications = async (): Promise<Application[]> => {
   }
   
   // Transform the nested data into a flat structure
-  return (data || []).map(item => ({
+  return (data || []).map((item: Application) => ({
     id: item.id,
     job_id: item.job_id,
     status: item.status,
