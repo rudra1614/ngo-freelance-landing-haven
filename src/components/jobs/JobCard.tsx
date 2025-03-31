@@ -11,6 +11,7 @@ interface Job {
   location: string | null;
   salary_range: string | null;
   requirements: string | null;
+  description: string;
   organization: {
     name: string;
   } | null;
@@ -58,9 +59,11 @@ const JobCard: React.FC<JobCardProps> = ({ job, onSave }) => {
         
         <div className="space-y-4 mb-4">
           <p className="text-gray-600">
-            {job.requirements 
-              ? truncateText(job.requirements, 150)
-              : "Job description not available."}
+            {job.description 
+              ? truncateText(job.description, 150)
+              : job.requirements 
+                ? truncateText(job.requirements, 150)
+                : "Job description not available."}
           </p>
         </div>
         
@@ -73,10 +76,12 @@ const JobCard: React.FC<JobCardProps> = ({ job, onSave }) => {
             <BriefcaseIcon className="h-4 w-4 mr-1 text-gray-500" />
             <span>Full-time</span>
           </div>
-          <div className="flex items-center text-sm bg-gray-100 px-3 py-1 rounded-full">
-            <DollarSignIcon className="h-4 w-4 mr-1 text-gray-500" />
-            <span>{job.salary_range || 'Salary not specified'}</span>
-          </div>
+          {job.salary_range && (
+            <div className="flex items-center text-sm bg-gray-100 px-3 py-1 rounded-full">
+              <DollarSignIcon className="h-4 w-4 mr-1 text-gray-500" />
+              <span>{job.salary_range}</span>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

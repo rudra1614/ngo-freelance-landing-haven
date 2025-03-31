@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,8 +9,10 @@ import JobCard from '@/components/jobs/JobCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Card, CardContent } from '@/components/ui/card';
-import { SearchIcon } from 'lucide-react';
+import { SearchIcon, MapPinIcon, Briefcase } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface Job {
   id: string;
@@ -18,6 +21,7 @@ interface Job {
   location: string | null;
   salary_range: string | null;
   requirements: string | null;
+  description: string;
   organization: {
     name: string;
   } | null;
@@ -29,11 +33,12 @@ const Jobs = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentTab, setCurrentTab] = useState('latest');
+  const [jobCount, setJobCount] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchJobs();
-  }, []);
+  }, [currentTab]);
 
   useEffect(() => {
     if (searchQuery.trim() === '') {
@@ -51,14 +56,22 @@ const Jobs = () => {
   const fetchJobs = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from('jobs')
         .select(`
           *,
           organization:organizations (name)
         `)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false });
+        .eq('status', 'active');
+      
+      // Apply different sorting/filtering based on tab
+      if (currentTab === 'latest') {
+        query = query.order('created_at', { ascending: false });
+      } else if (currentTab === 'remote') {
+        query = query.ilike('location', '%remote%').order('created_at', { ascending: false });
+      }
+      
+      const { data, error } = await query;
 
       if (error) {
         throw error;
@@ -67,6 +80,7 @@ const Jobs = () => {
       console.log('Fetched jobs:', data);
       setJobs(data || []);
       setFilteredJobs(data || []);
+      setJobCount(data?.length || 0);
     } catch (error) {
       console.error('Error fetching jobs:', error);
       toast({
@@ -133,6 +147,12 @@ const Jobs = () => {
             </div>
           </div>
 
+          <div className="flex flex-wrap gap-2 mb-6">
+            <Badge className="bg-gray-200 text-gray-800 font-normal flex items-center">
+              <span className="font-bold mr-1">{jobCount}</span> jobs available
+            </Badge>
+          </div>
+
           <Tabs defaultValue="latest" className="w-full" onValueChange={setCurrentTab}>
             <TabsList className="mb-6">
               <TabsTrigger value="latest">Latest added</TabsTrigger>
@@ -144,12 +164,25 @@ const Jobs = () => {
               {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {[1, 2, 3, 4].map((_, index) => (
-                    <Card key={index} className="h-64 animate-pulse">
+                    <Card key={index} className="h-64">
                       <CardContent className="p-6">
-                        <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-                        <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-                        <div className="h-4 bg-gray-200 rounded w-full mb-4"></div>
-                        <div className="h-10 bg-gray-200 rounded w-full mt-auto"></div>
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="flex items-center">
+                            <Skeleton className="w-12 h-12 rounded-full" />
+                            <div className="ml-3">
+                              <Skeleton className="h-5 w-40 mb-1" />
+                              <Skeleton className="h-4 w-20" />
+                            </div>
+                          </div>
+                        </div>
+                        <Skeleton className="h-6 w-3/4 mb-4" />
+                        <Skeleton className="h-4 w-full mb-3" />
+                        <Skeleton className="h-4 w-5/6 mb-6" />
+                        <div className="flex flex-wrap gap-2">
+                          <Skeleton className="h-8 w-20 rounded-full" />
+                          <Skeleton className="h-8 w-24 rounded-full" />
+                          <Skeleton className="h-8 w-32 rounded-full" />
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
@@ -174,25 +207,27 @@ const Jobs = () => {
                 </div>
               )}
               
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious href="#" />
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationLink href="#" isActive>1</PaginationLink>
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationLink href="#">2</PaginationLink>
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationLink href="#">3</PaginationLink>
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationNext href="#" />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
+              {filteredJobs.length > 0 && (
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious href="#" />
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationLink href="#" isActive>1</PaginationLink>
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationLink href="#">2</PaginationLink>
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationLink href="#">3</PaginationLink>
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationNext href="#" />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
             </TabsContent>
             
             <TabsContent value="popular">
@@ -205,12 +240,38 @@ const Jobs = () => {
             </TabsContent>
             
             <TabsContent value="remote">
-              <div className="text-center py-12">
-                <h3 className="text-xl font-medium">Remote jobs coming soon</h3>
-                <p className="text-gray-500 mt-2">
-                  Check back later for remote job opportunities
-                </p>
-              </div>
+              {loading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-pulse">
+                  {[1, 2].map((_, index) => (
+                    <Card key={index} className="h-64">
+                      <CardContent className="p-6">
+                        <Skeleton className="h-6 w-3/4 mb-4" />
+                        <Skeleton className="h-4 w-1/2 mb-2" />
+                        <Skeleton className="h-4 w-full mb-4" />
+                        <Skeleton className="h-10 w-full mt-auto" />
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : filteredJobs.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {filteredJobs.map((job) => (
+                    <div key={job.id} onClick={() => handleApplyToJob(job.id)} className="cursor-pointer">
+                      <JobCard 
+                        job={job} 
+                        onSave={() => handleSaveJob(job.id)} 
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <h3 className="text-xl font-medium">No remote jobs found</h3>
+                  <p className="text-gray-500 mt-2">
+                    Check back later for remote job opportunities
+                  </p>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </div>
