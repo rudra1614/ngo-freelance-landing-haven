@@ -1,0 +1,196 @@
+
+import React, { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { MapPin, Briefcase, DollarSign, ArrowRight, Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+
+interface Organization {
+  id: string;
+  name: string;
+}
+
+interface Job {
+  id: string;
+  title: string;
+  description: string;
+  location: string | null;
+  requirements: string | null;
+  salary_range: string | null;
+  status: string;
+  created_at: string;
+  organization: Organization | null;
+}
+
+const JobsListView = () => {
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        setLoading(true);
+        
+        const { data, error } = await supabase
+          .from('jobs')
+          .select(`
+            *,
+            organization:organizations(id, name)
+          `)
+          .eq('status', 'active')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          throw error;
+        }
+
+        // Transform the data to match our Job interface
+        const formattedJobs = data.map((item: any) => ({
+          ...item,
+          organization: item.organization
+        }));
+
+        setJobs(formattedJobs);
+      } catch (error: any) {
+        console.error('Error fetching jobs:', error);
+        setError(error.message || 'Failed to load jobs');
+        toast({
+          title: 'Error',
+          description: 'Failed to load jobs',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJobs();
+  }, []);
+
+  const truncateText = (text: string, maxLength: number) => {
+    if (!text) return "";
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <Card key={i} className="overflow-hidden">
+            <CardContent className="p-0">
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex items-center">
+                    <Skeleton className="h-12 w-12 rounded-full" />
+                    <div className="ml-3">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-24 mt-2" />
+                    </div>
+                  </div>
+                </div>
+                <Skeleton className="h-6 w-3/4 mb-4" />
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-2/3" />
+                <div className="flex flex-wrap gap-2 mt-4">
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                  <Skeleton className="h-6 w-24 rounded-full" />
+                  <Skeleton className="h-6 w-28 rounded-full" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 bg-red-50 text-red-700 rounded-md">
+        <p className="font-medium">Error</p>
+        <p>{error}</p>
+      </div>
+    );
+  }
+
+  if (jobs.length === 0) {
+    return (
+      <div className="text-center p-8">
+        <Briefcase className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+        <h3 className="text-lg font-medium mb-2">No Jobs Available</h3>
+        <p className="text-gray-500 mb-4">
+          There are currently no job listings available.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Available Jobs</h2>
+      </div>
+      
+      <div className="grid gap-6">
+        {jobs.map((job) => (
+          <Card key={job.id} className="hover:shadow-md transition-shadow overflow-hidden">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex items-center">
+                  <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mr-3 overflow-hidden">
+                    <Briefcase className="h-6 w-6 text-gray-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">{job.organization?.name || 'Organization'}</h3>
+                    <p className="text-gray-500 text-sm">{job.location || 'Location not specified'}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <h2 className="text-xl font-bold mb-2">{job.title}</h2>
+              
+              <div className="space-y-4 mb-4">
+                <p className="text-gray-600">
+                  {truncateText(job.description, 150)}
+                </p>
+              </div>
+              
+              <div className="flex flex-wrap gap-2 mt-4">
+                {job.location && (
+                  <div className="flex items-center text-sm bg-gray-100 px-3 py-1 rounded-full">
+                    <MapPin className="h-4 w-4 mr-1 text-gray-500" />
+                    <span>{job.location}</span>
+                  </div>
+                )}
+                <div className="flex items-center text-sm bg-gray-100 px-3 py-1 rounded-full">
+                  <Briefcase className="h-4 w-4 mr-1 text-gray-500" />
+                  <span>Full-time</span>
+                </div>
+                {job.salary_range && (
+                  <div className="flex items-center text-sm bg-gray-100 px-3 py-1 rounded-full">
+                    <DollarSign className="h-4 w-4 mr-1 text-gray-500" />
+                    <span>{job.salary_range}</span>
+                  </div>
+                )}
+              </div>
+              
+              <div className="mt-6 flex justify-end">
+                <Button variant="outline" className="flex items-center gap-2">
+                  View Details
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default JobsListView;
