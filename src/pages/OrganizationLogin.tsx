@@ -20,18 +20,22 @@ const OrganizationLogin = () => {
   // Check if user is already logged in
   useEffect(() => {
     const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        // If there's a valid session, check if organization exists
-        const { data: orgData, error: orgError } = await supabase
-          .from('organizations')
-          .select('id')
-          .eq('user_id', data.session.user.id)
-          .single();
-          
-        if (orgData && !orgError) {
-          navigate('/organization/dashboard');
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (data.session) {
+          // If there's a valid session, check if organization exists
+          const { data: orgData, error: orgError } = await supabase
+            .from('organizations')
+            .select('id')
+            .eq('user_id', data.session.user.id)
+            .maybeSingle(); // Using maybeSingle instead of single to avoid errors
+            
+          if (orgData && !orgError) {
+            navigate('/organization/dashboard');
+          }
         }
+      } catch (error) {
+        console.error("Error checking session:", error);
       }
     };
     
@@ -59,14 +63,14 @@ const OrganizationLogin = () => {
           .from('organizations')
           .select('id, name')
           .eq('user_id', data.user.id)
-          .single();
+          .maybeSingle(); // Using maybeSingle instead of single
           
-        if (orgError) {
+        if (orgError || !orgData) {
+          console.log("Creating new organization record");
           // User is authenticated but has no organization record
           toast({
             title: 'Login Successful',
-            description: "You're signed in, but we couldn't find your organization details. Please complete registration.",
-            variant: 'destructive'
+            description: "You're signed in, but we couldn't find your organization details. Creating one for you now.",
           });
           
           // Create a minimal organization record
