@@ -1,196 +1,216 @@
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Clock, X, Eye } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Eye, Trash2 } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 
-// Define simple flat types instead of nested types to avoid circular references
-interface Organization {
-  name: string | null;
-}
-
-interface Job {
+// Separate type definitions to avoid circular references
+interface JobDetails {
   id: string;
   title: string;
+  organization_id: string;
+  description: string;
+  requirements: string | null;
   location: string | null;
-  organization: Organization | null;
+  salary_range: string | null;
+  status: string;
+  created_at: string;
 }
 
-// Simplified application type with no nested structures
-interface Application {
+interface OrganizationDetails {
   id: string;
+  name: string;
+}
+
+interface ApplicationData {
+  id: string;
+  user_id: string;
   job_id: string;
   status: string;
   created_at: string;
-  applicant_id: string;
+  job: JobDetails | null;
+  organization: OrganizationDetails | null;
 }
 
-// Flattened application data for rendering
-interface FlattenedApplication {
-  id: string;
-  job_id: string;
-  status: string;
-  created_at: string;
-  job_title: string;
-  organization_name: string;
-  job_location: string;
-}
+const AppliedJobs = () => {
+  const [applications, setApplications] = useState<ApplicationData[]>([]);
+  const [loading, setLoading] = useState(true);
 
-const fetchApplications = async (): Promise<FlattenedApplication[]> => {
-  const { data: session } = await supabase.auth.getSession();
-  
-  if (!session?.session?.user) {
-    return [];
-  }
-  
-  const { data, error } = await supabase
-    .from('applications')
-    .select(`
-      id,
-      job_id,
-      status,
-      created_at,
-      job:jobs (
-        title,
-        location,
-        organization:organizations (
-          name
-        )
-      )
-    `)
-    .eq('applicant_id', session.session.user.id);
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        setLoading(true);
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          const { data, error } = await supabase
+            .from('applications')
+            .select(`
+              *,
+              job:jobs (*),
+              organization:organizations (id, name)
+            `)
+            .eq('user_id', session.user.id);
+            
+          if (error) {
+            throw error;
+          }
+          
+          setApplications(data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching applications:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load your applications',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
     
-  if (error) {
-    console.error('Error fetching applications:', error);
-    throw error;
-  }
-  
-  // Transform the nested data into a flat structure
-  return (data || []).map((item: any) => ({
-    id: item.id,
-    job_id: item.job_id,
-    status: item.status,
-    created_at: item.created_at,
-    job_title: item.job?.title || 'Unknown',
-    organization_name: item.job?.organization?.name || 'Unknown',
-    job_location: item.job?.location || 'Remote'
-  }));
-};
+    fetchApplications();
+  }, []);
 
-const AppliedJobs: React.FC = () => {
-  const { data: applications, isLoading, error } = useQuery({
-    queryKey: ['applications'],
-    queryFn: fetchApplications,
-  });
-
-  const getStatusIcon = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'accepted':
-        return <Check className="h-4 w-4 text-green-500" />;
-      case 'rejected':
-        return <X className="h-4 w-4 text-red-500" />;
-      default:
-        return <Clock className="h-4 w-4 text-yellow-500" />;
+  const withdrawApplication = async (applicationId: string) => {
+    try {
+      const { error } = await supabase
+        .from('applications')
+        .delete()
+        .eq('id', applicationId);
+        
+      if (error) {
+        throw error;
+      }
+      
+      setApplications(applications.filter(app => app.id !== applicationId));
+      
+      toast({
+        title: 'Application withdrawn',
+        description: 'Your application has been successfully withdrawn.',
+      });
+    } catch (error) {
+      console.error('Error withdrawing application:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to withdraw your application',
+        variant: 'destructive',
+      });
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'accepted':
-        return 'bg-green-100 text-green-800';
-      case 'rejected':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-yellow-100 text-yellow-800';
-    }
-  };
-
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <Alert variant="destructive">
-        <AlertDescription>
-          Error loading your applications. Please try again later.
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
-  if (!applications || applications.length === 0) {
-    return (
-      <div className="text-center py-10">
-        <h3 className="text-lg font-medium mb-2">No job applications yet</h3>
-        <p className="text-muted-foreground mb-6">You haven't applied to any jobs yet.</p>
-        <Button variant="outline" asChild>
-          <a href="/jobs">Browse Jobs</a>
-        </Button>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-8 w-24" />
+        </div>
+        <div className="border rounded-md">
+          <div className="p-4 border-b bg-muted/30">
+            <Skeleton className="h-6 w-full" />
+          </div>
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="p-4 flex justify-between items-center border-b">
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-48" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+              <Skeleton className="h-9 w-24" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Organization</TableHead>
-              <TableHead>Position</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Applied Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="w-[100px]">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {applications.map((application) => (
-              <TableRow key={application.id}>
-                <TableCell className="font-medium">
-                  {application.organization_name}
-                </TableCell>
-                <TableCell>{application.job_title}</TableCell>
-                <TableCell>{application.job_location}</TableCell>
-                <TableCell>
-                  {new Date(application.created_at).toLocaleDateString()}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center">
-                    {getStatusIcon(application.status)}
-                    <Badge variant="outline" className={`ml-2 ${getStatusColor(application.status)}`}>
-                      {application.status}
-                    </Badge>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Button variant="ghost" size="sm" asChild>
-                    <a href={`/jobs/${application.job_id}`}>
-                      <Eye className="h-4 w-4 mr-1" />
-                      View
-                    </a>
-                  </Button>
-                </TableCell>
+    <div>
+      <h3 className="text-lg font-medium mb-4">Your Applications</h3>
+      {applications.length === 0 ? (
+        <div className="bg-muted/30 p-6 text-center rounded-md border">
+          <p className="text-muted-foreground">You haven't applied to any jobs yet.</p>
+        </div>
+      ) : (
+        <div className="border rounded-md">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Job</TableHead>
+                <TableHead>Organization</TableHead>
+                <TableHead>Date Applied</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {applications.map((application) => (
+                <TableRow key={application.id}>
+                  <TableCell className="font-medium">
+                    {application.job?.title || 'Deleted Job'}
+                  </TableCell>
+                  <TableCell>
+                    {application.organization?.name || 'Unknown'}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(application.created_at).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <Badge 
+                      variant={
+                        application.status === 'pending' ? 'outline' : 
+                        application.status === 'accepted' ? 'success' : 
+                        application.status === 'rejected' ? 'destructive' : 
+                        'default'
+                      }
+                    >
+                      {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => {
+                          // View application details
+                          toast({
+                            title: 'View Application',
+                            description: 'Application details view is not implemented yet.',
+                          });
+                        }}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      {application.status === 'pending' && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => withdrawApplication(application.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   );
 };
