@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Bell, Home } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const DashboardHeader = () => {
@@ -49,12 +48,6 @@ const DashboardHeader = () => {
           )}
         </h1>
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/">
-              <Home className="h-4 w-4 mr-2" />
-              Home
-            </Link>
-          </Button>
           <Button variant="ghost" size="icon">
             <Bell className="h-5 w-5" />
           </Button>
