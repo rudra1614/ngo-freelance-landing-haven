@@ -15,8 +15,8 @@ import { Badge } from '@/components/ui/badge';
 import { Check, Clock, X, Eye } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-// Interface for job data
-interface Job {
+// Interface for job data - breaking circular reference
+interface JobData {
   title: string;
   location: string | null;
   organization: {
@@ -24,13 +24,13 @@ interface Job {
   } | null;
 }
 
-// Base application interface without nested structures
-interface Application {
+// Base application interface
+interface ApplicationData {
   id: string;
   job_id: string;
   status: string;
   created_at: string;
-  job: Job | null;
+  job: JobData | null;
 }
 
 // Flattened application data for rendering
@@ -74,7 +74,7 @@ const fetchApplications = async (): Promise<FlattenedApplication[]> => {
   }
   
   // Transform the nested data into a flat structure
-  return (data || []).map((item: Application) => ({
+  return (data || []).map((item: ApplicationData) => ({
     id: item.id,
     job_id: item.job_id,
     status: item.status,
