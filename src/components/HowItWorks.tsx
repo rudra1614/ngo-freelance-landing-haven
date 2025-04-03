@@ -30,7 +30,6 @@ const HowItWorks = () => {
     <section className="py-24 relative overflow-hidden">
       {/* Background elements */}
       <div className="absolute top-0 left-0 w-full h-full">
-        <div className="absolute top-10 left-10 w-40 h-40 bg-blue-500 rounded-full opacity-10"></div>
         <div className="absolute bottom-10 right-10 w-60 h-60 bg-blue-500 rounded-full opacity-5"></div>
       </div>
       
