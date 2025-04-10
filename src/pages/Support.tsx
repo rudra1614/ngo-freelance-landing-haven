@@ -2,6 +2,7 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import ChatBot from '@/components/ChatBot';
 import {
   Accordion,
   AccordionContent,
@@ -86,6 +87,8 @@ const Support = () => {
           </div>
         </section>
       </div>
+      
+      <ChatBot />
       
       <div className="mt-auto">
         <Footer />
