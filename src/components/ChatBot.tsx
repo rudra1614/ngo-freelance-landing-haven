@@ -14,7 +14,7 @@ interface Message {
 
 const ChatBot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'model', content: "Hi there! I'm your NGO Freelancing assistant. How can I help you today?" }
+    { role: 'model', content: "Hi there! I'm your NGO Freelancing assistant. I can help with questions about using our platform, finding opportunities, or creating an account. How can I help you today?" }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -43,6 +43,29 @@ const ChatBot: React.FC = () => {
     setIsLoading(true);
     
     try {
+      // Construct conversation history with previous messages for context
+      const conversationHistory = messages.map(msg => 
+        msg.role === 'user' ? `User: ${msg.content}` : `Assistant: ${msg.content}`
+      ).join('\n');
+      
+      // System instruction that constrains the AI to website-specific information
+      const systemInstruction = `
+You are a helpful assistant for the NGO Freelancing website. Your purpose is to provide information specifically about:
+- How to create and manage accounts on the platform
+- Available opportunities for social workers
+- How organizations can post jobs and find talent
+- Platform features and navigation
+- Subscription and payment options
+- Support contact information
+
+If asked about topics unrelated to the NGO Freelancing platform, politely explain that you can only assist with questions about the website and its services. Do not provide information about general topics, politics, news, or other unrelated subjects. Always be professional, helpful, and concise in your responses.
+
+Current conversation history:
+${conversationHistory}
+
+User's new message: ${userMessage}
+`;
+
       const response = await fetch(`${API_URL}?key=${API_KEY}`, {
         method: 'POST',
         headers: {
@@ -52,7 +75,7 @@ const ChatBot: React.FC = () => {
           contents: [
             {
               parts: [
-                { text: userMessage }
+                { text: systemInstruction }
               ]
             }
           ],
@@ -80,12 +103,18 @@ const ChatBot: React.FC = () => {
         variant: "destructive",
       });
       
-      // Fallback response
+      // Fallback domain-specific responses
+      const fallbackResponses = [
+        "I can only answer questions related to the NGO Freelancing platform. Please ask about creating an account, finding opportunities, or how to use our services.",
+        "I'm your NGO Freelancing assistant. I can help with platform-related questions like account creation, job postings, or finding talent. What would you like to know about our services?",
+        "Sorry, I'm having trouble connecting to my knowledge base. For questions about the NGO Freelancing platform, please contact our support team directly or check the FAQ section."
+      ];
+      
       setMessages(prev => [
         ...prev, 
         { 
           role: 'model', 
-          content: "I'm sorry, I'm having trouble connecting to my knowledge base. Please try again later or contact our support team for immediate assistance." 
+          content: fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)] 
         }
       ]);
     } finally {
