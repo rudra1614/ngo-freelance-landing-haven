@@ -1,9 +1,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, X, RefreshCw } from 'lucide-react';
+import { Send, Bot, X, RefreshCw, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface Message {
   content: string;
@@ -17,6 +18,7 @@ const ChatBot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [quotaExceeded, setQuotaExceeded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   
@@ -64,10 +66,17 @@ const ChatBot: React.FC = () => {
       });
       
       if (!response.ok) {
-        throw new Error(`API Error: ${response.status}`);
+        const errorData = await response.json();
+        if (response.status === 429 && errorData?.error?.code === 'insufficient_quota') {
+          setQuotaExceeded(true);
+          setApiError("OpenAI API quota exceeded. Please check your billing details.");
+        } else {
+          throw new Error(`API Error: ${response.status}`);
+        }
+      } else {
+        setApiError(null);
+        setQuotaExceeded(false);
       }
-      
-      setApiError(null);
     } catch (error) {
       console.error("Error testing OpenAI API connection:", error);
       setApiError("Failed to connect to OpenAI. The assistant will use predefined responses.");
@@ -121,7 +130,14 @@ const ChatBot: React.FC = () => {
         });
         
         if (!response.ok) {
-          throw new Error(`API Error: ${response.status}`);
+          const errorData = await response.json();
+          if (response.status === 429 && errorData?.error?.code === 'insufficient_quota') {
+            setQuotaExceeded(true);
+            setApiError("OpenAI API quota exceeded. Please check your billing details.");
+            throw new Error("API quota exceeded");
+          } else {
+            throw new Error(`API Error: ${response.status}`);
+          }
         }
         
         const data = await response.json();
@@ -135,12 +151,19 @@ const ChatBot: React.FC = () => {
       }
     } catch (error) {
       console.error("Error sending message:", error);
-      setApiError("Failed to get response from OpenAI");
-      toast({
-        title: "Connection Error",
-        description: "Couldn't connect to our AI service. Using fallback responses instead.",
-        variant: "destructive"
-      });
+      
+      if (!apiError) {
+        // Only show toast if this is a new error
+        toast({
+          title: "Connection Error",
+          description: "Couldn't connect to our AI service. Using fallback responses instead.",
+          variant: "destructive"
+        });
+      }
+      
+      if (!quotaExceeded) {
+        setApiError("Failed to get response from OpenAI");
+      }
       
       // Add fallback response
       const fallbackResponse = getFallbackResponse(inputMessage);
@@ -226,8 +249,18 @@ const ChatBot: React.FC = () => {
           
           {/* API error indicator */}
           {apiError && (
-            <div className="bg-red-900/30 px-4 py-2 text-sm text-red-200 border-b border-red-800">
-              <p>Using offline mode: {apiError}</p>
+            <div className={`px-4 py-2 text-sm border-b ${
+              quotaExceeded 
+                ? "bg-amber-900/30 text-amber-200 border-amber-800" 
+                : "bg-red-900/30 text-red-200 border-red-800"
+            }`}>
+              <div className="flex items-center">
+                <AlertTriangle size={16} className="mr-2 flex-shrink-0" />
+                <p>{apiError}</p>
+              </div>
+              {quotaExceeded && (
+                <p className="mt-1 text-xs">Using offline mode with predefined responses.</p>
+              )}
             </div>
           )}
 
@@ -287,7 +320,7 @@ const ChatBot: React.FC = () => {
               </Button>
             </div>
             <p className="text-xs text-gray-400 mt-2 text-center">
-              Powered by OpenAI
+              {quotaExceeded ? "Using offline mode" : "Powered by OpenAI"}
             </p>
           </div>
         </div>
