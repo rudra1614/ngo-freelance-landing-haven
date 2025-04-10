@@ -24,8 +24,9 @@ const ChatBot: React.FC = () => {
   
   // API key from the props (this is the Gemini API key)
   const apiKey = "AIzaSyBZI2-CO4hnyBFotfxvyodUPYLDh3zB2RQ";
-  // Using gemini-pro model instead of gemini-flash-2.0 which isn't found
-  const modelName = "gemini-pro";
+  // Using the correct API version and model for Gemini Flash 2.0
+  const apiVersion = "v1";
+  const modelName = "gemini-1.5-flash";
 
   // Initial greeting when chat opens
   useEffect(() => {
@@ -54,7 +55,7 @@ const ChatBot: React.FC = () => {
 
   const testApiConnection = async () => {
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/${apiVersion}/models/${modelName}:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -122,7 +123,7 @@ const ChatBot: React.FC = () => {
           parts: [{ text: m.content }]
         }));
         
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/${apiVersion}/models/${modelName}:generateContent?key=${apiKey}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -341,7 +342,7 @@ const ChatBot: React.FC = () => {
               </Button>
             </div>
             <p className="text-xs text-gray-400 mt-2 text-center">
-              {quotaExceeded ? "Using offline mode" : "Powered by Gemini"}
+              {quotaExceeded ? "Using offline mode" : "Powered by Gemini Flash 2.0"}
             </p>
           </div>
         </div>
