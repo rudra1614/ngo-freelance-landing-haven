@@ -3,6 +3,7 @@ import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ChatBot from '@/components/ChatBot';
+import { MessageCircle } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -47,22 +48,29 @@ const Support = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-900 text-white">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
       <Navbar />
       
       <div className="container mx-auto px-6 py-12">
-        <h1 className="text-4xl font-bold text-center mb-12">Support Center</h1>
+        <div className="text-center mb-16">
+          <h1 className="text-5xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-200">Support Center</h1>
+          <div className="h-1 w-20 bg-gradient-to-r from-blue-500 to-blue-300 mx-auto rounded-full"></div>
+        </div>
         
         <section className="mb-16 max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold mb-8 text-center">Frequently Asked Questions</h2>
+          <h2 className="text-3xl font-bold mb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-blue-100">Frequently Asked Questions</h2>
           
-          <Accordion type="single" collapsible className="bg-gray-800 rounded-lg p-6">
+          <Accordion type="single" collapsible className="bg-gray-800/70 backdrop-blur-sm rounded-xl p-6 shadow-xl border border-gray-700/50">
             {faqs.map((faq, index) => (
-              <AccordionItem key={index} value={`item-${index}`} className="border-b border-gray-700 py-2 last:border-0">
-                <AccordionTrigger className="text-lg font-medium text-blue-400 hover:text-blue-300">
+              <AccordionItem 
+                key={index} 
+                value={`item-${index}`} 
+                className="border-b border-gray-700/50 py-2 last:border-0 hover:bg-gray-700/30 transition-colors duration-200 rounded-lg px-2"
+              >
+                <AccordionTrigger className="text-lg font-medium text-blue-300 hover:text-blue-200 transition-colors">
                   {faq.question}
                 </AccordionTrigger>
-                <AccordionContent className="text-gray-300 pt-2">
+                <AccordionContent className="text-gray-300 pt-2 pl-2">
                   {faq.answer}
                 </AccordionContent>
               </AccordionItem>
@@ -71,17 +79,25 @@ const Support = () => {
         </section>
         
         <section className="mb-16 max-w-3xl mx-auto text-center">
-          <h2 className="text-2xl font-bold mb-4">Still Need Help?</h2>
-          <p className="text-gray-300 mb-6">
-            If you couldn't find what you're looking for, please contact our support team.
+          <h2 className="text-3xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-blue-100">Still Need Help?</h2>
+          <p className="text-gray-300 mb-10 max-w-xl mx-auto">
+            If you couldn't find what you're looking for, please contact our support team. We're here to help you navigate our platform.
           </p>
-          <div className="flex flex-col md:flex-row justify-center gap-4">
-            <div className="bg-gray-800 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold mb-3 text-blue-400">Email Support</h3>
-              <p className="text-gray-300">contact@ngofreelancing.org</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-gray-800/70 backdrop-blur-sm p-8 rounded-xl border border-gray-700/50 shadow-xl hover:transform hover:scale-105 transition-all duration-300 group">
+              <div className="bg-blue-600/20 p-4 rounded-full w-16 h-16 flex justify-center items-center mx-auto mb-4 group-hover:bg-blue-600/30 transition-colors">
+                <MessageCircle size={28} className="text-blue-300 group-hover:text-blue-200" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3 text-blue-300 group-hover:text-blue-200 transition-colors">Email Support</h3>
+              <p className="text-gray-300 break-all">contact@ngofreelancing.org</p>
             </div>
-            <div className="bg-gray-800 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold mb-3 text-blue-400">Phone Support</h3>
+            <div className="bg-gray-800/70 backdrop-blur-sm p-8 rounded-xl border border-gray-700/50 shadow-xl hover:transform hover:scale-105 transition-all duration-300 group">
+              <div className="bg-blue-600/20 p-4 rounded-full w-16 h-16 flex justify-center items-center mx-auto mb-4 group-hover:bg-blue-600/30 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-blue-300 group-hover:text-blue-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold mb-3 text-blue-300 group-hover:text-blue-200 transition-colors">Phone Support</h3>
               <p className="text-gray-300">+91 9599912493</p>
             </div>
           </div>
