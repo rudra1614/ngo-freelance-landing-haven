@@ -11,16 +11,10 @@ type Message = {
   isBot: boolean;
 };
 
-// Predefined responses based on keywords
-const botResponses: Record<string, string> = {
+// Fallback responses for when the API is not available
+const fallbackResponses: Record<string, string> = {
   "account": "You can create an account by clicking on 'I'm a Socialworker' or 'Hire Socialworker' on the homepage, then selecting 'Register' on the login page.",
   "opportunities": "Our platform offers various opportunities including community development, counseling, project management, research, fundraising, and more based on NGO needs.",
-  "apply": "After creating a social worker account, you can browse opportunities, view details, and submit applications directly through the platform.",
-  "post job": "After registering as an organization, navigate to your dashboard and select 'Post a New Job'. Fill in all the required details.",
-  "fee": "Our platform is currently free for social workers. Organizations may have subscription options for additional features.",
-  "verification": "Social workers provide their educational qualifications, work experience, certifications, and references which organizations can review.",
-  "remote": "Yes, many opportunities on our platform offer remote work options. You can filter jobs by location preference.",
-  "contact": "For any issues or questions, please email us at contact@ngofreelancing.org or call us at +91 9599912493.",
   "help": "I'm here to help! You can ask me about creating an account, finding opportunities, job applications, posting jobs, fees, verification, remote work, or contacting support."
 };
 
@@ -35,6 +29,10 @@ const ChatBot: React.FC = () => {
     }
   ]);
   const [isTyping, setIsTyping] = useState(false);
+  const [apiKey, setApiKey] = useState<string>(() => {
+    return localStorage.getItem('gemini_api_key') || '';
+  });
+  const [showApiKeyInput, setShowApiKeyInput] = useState(!localStorage.getItem('gemini_api_key'));
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -44,7 +42,24 @@ const ChatBot: React.FC = () => {
     }
   }, [messages]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleApiKeySubmit = () => {
+    if (apiKey.trim()) {
+      localStorage.setItem('gemini_api_key', apiKey);
+      setShowApiKeyInput(false);
+      toast({
+        title: "API Key Saved",
+        description: "Your API key has been saved for this session.",
+      });
+    } else {
+      toast({
+        title: "API Key Required",
+        description: "Please enter a valid API key.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim() === '') return;
 
@@ -58,28 +73,106 @@ const ChatBot: React.FC = () => {
     setInput('');
     setIsTyping(true);
 
-    // Simulate typing delay
-    setTimeout(() => {
+    try {
+      if (!apiKey) {
+        // Use fallback response if no API key
+        setTimeout(() => {
+          const botMessage = {
+            id: (Date.now() + 1).toString(),
+            content: getFallbackResponse(input.toLowerCase()),
+            isBot: true
+          };
+          setMessages(prev => [...prev, botMessage]);
+          setIsTyping(false);
+        }, 1000);
+        return;
+      }
+
+      // Prepare conversation history for context
+      const conversationHistory = messages.slice(-5).map(msg => ({
+        role: msg.isBot ? "model" : "user",
+        parts: [{ text: msg.content }]
+      }));
+
+      // Add current user message
+      conversationHistory.push({
+        role: "user",
+        parts: [{ text: input }]
+      });
+
+      // Call Gemini API
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [{ 
+                text: `You are an assistant for NGO Freelancing, a platform connecting social workers with NGOs. 
+                Answer questions about: creating accounts, available opportunities, applying for positions, 
+                posting jobs as an organization, platform fees, social worker verification process, remote work options, 
+                and contacting support. Keep responses concise and helpful. Current question: ${input}` 
+              }]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.7,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 1024,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const botResponse = data.candidates[0].content.parts[0].text || "I'm sorry, I couldn't generate a response.";
+      
       const botMessage = {
         id: (Date.now() + 1).toString(),
-        content: getBotResponse(input.toLowerCase()),
+        content: botResponse,
         isBot: true
       };
+      
       setMessages(prev => [...prev, botMessage]);
+    } catch (error) {
+      console.error("Error calling Gemini API:", error);
+      
+      // Fallback to predefined responses on error
+      const botMessage = {
+        id: (Date.now() + 1).toString(),
+        content: `I'm having trouble connecting to my AI service. ${getFallbackResponse(input.toLowerCase())}`,
+        isBot: true
+      };
+      
+      setMessages(prev => [...prev, botMessage]);
+      
+      toast({
+        title: "Connection Error",
+        description: "There was a problem connecting to the AI service. Using fallback responses.",
+        variant: "destructive",
+      });
+    } finally {
       setIsTyping(false);
-    }, 1000);
+    }
   };
 
-  const getBotResponse = (query: string): string => {
-    // Check for keyword matches
-    for (const [keyword, response] of Object.entries(botResponses)) {
+  const getFallbackResponse = (query: string): string => {
+    // Check for keyword matches in fallback responses
+    for (const [keyword, response] of Object.entries(fallbackResponses)) {
       if (query.includes(keyword.toLowerCase())) {
         return response;
       }
     }
 
     // Default response if no keyword matches
-    return "I'm not sure I understand. Could you rephrase your question? You can ask about account creation, job opportunities, application process, posting jobs, fees, verification, remote work, or contacting support.";
+    return "I'm sorry, I couldn't process your request. Please try asking about account creation, job opportunities, application process, posting jobs, fees, verification, remote work, or contacting support.";
   };
 
   return (
@@ -99,7 +192,7 @@ const ChatBot: React.FC = () => {
           {/* Chat header */}
           <div className="bg-blue-600 text-white p-4 flex items-center">
             <Bot className="h-6 w-6 mr-2" />
-            <h3 className="font-semibold">Support Assistant</h3>
+            <h3 className="font-semibold">AI Support Assistant</h3>
             <Button 
               variant="ghost" 
               size="icon" 
@@ -110,60 +203,92 @@ const ChatBot: React.FC = () => {
             </Button>
           </div>
 
-          {/* Messages container */}
-          <div className="h-80 overflow-y-auto p-4 bg-gray-50">
-            {messages.map((message) => (
-              <div 
-                key={message.id} 
-                className={`mb-4 max-w-[80%] ${message.isBot ? 'ml-0' : 'ml-auto'}`}
-              >
-                <div 
-                  className={`p-3 rounded-lg ${
-                    message.isBot 
-                      ? 'bg-blue-100 text-gray-800 rounded-tl-none' 
-                      : 'bg-blue-600 text-white rounded-tr-none ml-auto'
-                  }`}
-                >
-                  {message.content}
-                </div>
+          {showApiKeyInput ? (
+            <div className="p-4">
+              <h4 className="font-medium mb-2">Enter your Gemini API Key</h4>
+              <p className="text-sm text-gray-600 mb-3">
+                This will be stored locally in your browser and used to connect to the Gemini AI service.
+              </p>
+              <div className="flex flex-col gap-2">
+                <input
+                  type="password"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  className="border border-gray-300 rounded p-2 text-sm"
+                  placeholder="AI API Key"
+                />
+                <Button onClick={handleApiKeySubmit}>Save API Key</Button>
               </div>
-            ))}
-            {isTyping && (
-              <div className="mb-4 max-w-[80%]">
-                <div className="p-3 rounded-lg bg-blue-100 text-gray-800 rounded-tl-none">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }}></div>
+            </div>
+          ) : (
+            <>
+              {/* Messages container */}
+              <div className="h-80 overflow-y-auto p-4 bg-gray-50">
+                {messages.map((message) => (
+                  <div 
+                    key={message.id} 
+                    className={`mb-4 max-w-[80%] ${message.isBot ? 'ml-0' : 'ml-auto'}`}
+                  >
+                    <div 
+                      className={`p-3 rounded-lg ${
+                        message.isBot 
+                          ? 'bg-blue-100 text-gray-800 rounded-tl-none' 
+                          : 'bg-blue-600 text-white rounded-tr-none ml-auto'
+                      }`}
+                    >
+                      {message.content}
+                    </div>
                   </div>
-                </div>
+                ))}
+                {isTyping && (
+                  <div className="mb-4 max-w-[80%]">
+                    <div className="p-3 rounded-lg bg-blue-100 text-gray-800 rounded-tl-none">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                        <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                        <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
               </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
 
-          {/* Input area */}
-          <form onSubmit={handleSubmit} className="p-3 border-t border-gray-200 flex gap-2">
-            <Textarea 
-              placeholder="Type your message..."
-              className="resize-none min-h-10 p-2"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSubmit(e);
-                }
-              }}
-            />
-            <Button 
-              type="submit" 
-              className="bg-blue-600 hover:bg-blue-700 h-10 w-10 p-0"
-              disabled={input.trim() === ''}
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </form>
+              {/* Input area */}
+              <form onSubmit={handleSubmit} className="p-3 border-t border-gray-200 flex gap-2">
+                <Textarea 
+                  placeholder="Type your message..."
+                  className="resize-none min-h-10 p-2"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSubmit(e);
+                    }
+                  }}
+                />
+                <Button 
+                  type="submit" 
+                  className="bg-blue-600 hover:bg-blue-700 h-10 w-10 p-0"
+                  disabled={input.trim() === ''}
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </form>
+              
+              {/* API key management */}
+              <div className="p-2 border-t border-gray-200">
+                <Button 
+                  variant="link" 
+                  className="text-xs text-gray-500" 
+                  onClick={() => setShowApiKeyInput(true)}
+                >
+                  Change API Key
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
