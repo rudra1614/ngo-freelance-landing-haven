@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -53,7 +52,8 @@ const ChatBot: React.FC = () => {
 
   const testApiConnection = async () => {
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.0-pro:generateContent?key=${apiKey}`, {
+      // Update to use Gemini Flash 2.0 API endpoint
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-flash-2.0:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -147,8 +147,8 @@ const ChatBot: React.FC = () => {
         parts: [{ text: input }]
       });
 
-      // Call Gemini API
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.0-pro:generateContent?key=${apiKey}`, {
+      // Call Gemini Flash 2.0 API
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-flash-2.0:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
