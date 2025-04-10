@@ -14,6 +14,7 @@ import OrganizationDashboard from "./pages/OrganizationDashboard";
 import Dashboard from "./pages/Dashboard";
 import About from "./pages/About";
 import Support from "./pages/Support";
+import Donation from "./pages/Donation";
 import AnimatedCursor from "./components/AnimatedCursor";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
           <Route path="/organization/dashboard" element={<OrganizationDashboard />} />
           <Route path="/about" element={<About />} />
           <Route path="/support" element={<Support />} />
+          <Route path="/donation" element={<Donation />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

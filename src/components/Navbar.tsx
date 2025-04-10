@@ -61,10 +61,11 @@ const Navbar = () => {
               {isActive('/about') && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-400 mt-0.5"></span>}
             </Link>
             <Link 
-              to="/" 
-              className="text-white hover:text-blue-400 transition-colors relative"
+              to="/donation" 
+              className={`text-white hover:text-blue-400 transition-colors relative ${isActive('/donation') ? 'text-blue-400' : ''}`}
             >
               <span>Donate</span>
+              {isActive('/donation') && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-400 mt-0.5"></span>}
             </Link>
           </div>
         </div>
@@ -96,6 +97,7 @@ const Navbar = () => {
                 <Link to="/" className="text-white hover:text-blue-400 transition-colors text-lg">Home</Link>
                 <Link to="/support" className="text-white hover:text-blue-400 transition-colors text-lg">Support</Link>
                 <Link to="/about" className="text-white hover:text-blue-400 transition-colors text-lg">About</Link>
+                <Link to="/donation" className="text-white hover:text-blue-400 transition-colors text-lg">Donate</Link>
                 <div className="pt-4 border-t border-gray-700">
                   <Link to="/login">
                     <Button variant="outline" className="w-full mb-3 border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white">
