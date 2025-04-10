@@ -22,8 +22,8 @@ const ChatBot: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   
-  // API key from the props (this is the OpenAI API key)
-  const apiKey = "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";
+  // API key from the props (this is the Gemini API key)
+  const apiKey = "AIzaSyBZI2-CO4hnyBFotfxvyodUPYLDh3zB2RQ";
 
   // Initial greeting when chat opens
   useEffect(() => {
@@ -52,24 +52,30 @@ const ChatBot: React.FC = () => {
 
   const testApiConnection = async () => {
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-2.0:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [{ role: 'user', content: 'Test' }],
-          max_tokens: 5
+          contents: [
+            {
+              parts: [
+                { text: "Test" }
+              ]
+            }
+          ],
+          generationConfig: {
+            maxOutputTokens: 5
+          }
         })
       });
       
       if (!response.ok) {
         const errorData = await response.json();
-        if (response.status === 429 && errorData?.error?.code === 'insufficient_quota') {
+        if (response.status === 429) {
           setQuotaExceeded(true);
-          setApiError("OpenAI API quota exceeded. Please check your billing details.");
+          setApiError("Gemini API quota exceeded. Please check your API key and usage limits.");
         } else {
           throw new Error(`API Error: ${response.status}`);
         }
@@ -78,8 +84,8 @@ const ChatBot: React.FC = () => {
         setQuotaExceeded(false);
       }
     } catch (error) {
-      console.error("Error testing OpenAI API connection:", error);
-      setApiError("Failed to connect to OpenAI. The assistant will use predefined responses.");
+      console.error("Error testing Gemini API connection:", error);
+      setApiError("Failed to connect to Gemini. The assistant will use predefined responses.");
     }
   };
 
@@ -108,32 +114,40 @@ const ChatBot: React.FC = () => {
           timestamp: new Date()
         }]);
       } else {
-        // If API is working, use it
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        // If API is working, use Gemini
+        const messageHistory = messages.map(m => ({
+          role: m.role === 'user' ? 'user' : 'model',
+          parts: [{ text: m.content }]
+        }));
+        
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-2.0:generateContent?key=${apiKey}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
           },
           body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            messages: [
+            contents: [
               {
-                role: 'system',
-                content: 'You are a helpful assistant for NGO Freelancing, a platform that connects social workers with NGOs. Provide concise, helpful responses about the platform, opportunities, application process, etc. Keep answers brief but informative.'
+                role: "system",
+                parts: [{ text: 'You are a helpful assistant for NGO Freelancing, a platform that connects social workers with NGOs. Provide concise, helpful responses about the platform, opportunities, application process, etc. Keep answers brief but informative.' }]
               },
-              ...messages.map(m => ({ role: m.role, content: m.content })),
-              { role: 'user', content: inputMessage }
+              ...messageHistory,
+              {
+                role: "user", 
+                parts: [{ text: inputMessage }]
+              }
             ],
-            max_tokens: 200
+            generationConfig: {
+              maxOutputTokens: 200
+            }
           })
         });
         
         if (!response.ok) {
           const errorData = await response.json();
-          if (response.status === 429 && errorData?.error?.code === 'insufficient_quota') {
+          if (response.status === 429) {
             setQuotaExceeded(true);
-            setApiError("OpenAI API quota exceeded. Please check your billing details.");
+            setApiError("Gemini API quota exceeded. Please check your API key and usage limits.");
             throw new Error("API quota exceeded");
           } else {
             throw new Error(`API Error: ${response.status}`);
@@ -141,7 +155,12 @@ const ChatBot: React.FC = () => {
         }
         
         const data = await response.json();
-        const assistantMessage = data.choices[0].message.content;
+        let assistantMessage = "I couldn't generate a response.";
+        
+        if (data.candidates && data.candidates[0] && data.candidates[0].content && 
+            data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
+          assistantMessage = data.candidates[0].content.parts[0].text;
+        }
         
         setMessages(prev => [...prev, {
           content: assistantMessage,
@@ -162,7 +181,7 @@ const ChatBot: React.FC = () => {
       }
       
       if (!quotaExceeded) {
-        setApiError("Failed to get response from OpenAI");
+        setApiError("Failed to get response from Gemini");
       }
       
       // Add fallback response
@@ -203,7 +222,7 @@ const ChatBot: React.FC = () => {
     testApiConnection();
     toast({
       title: "Reconnecting",
-      description: "Attempting to reconnect to OpenAI..."
+      description: "Attempting to reconnect to Gemini..."
     });
   };
 
@@ -320,7 +339,7 @@ const ChatBot: React.FC = () => {
               </Button>
             </div>
             <p className="text-xs text-gray-400 mt-2 text-center">
-              {quotaExceeded ? "Using offline mode" : "Powered by OpenAI"}
+              {quotaExceeded ? "Using offline mode" : "Powered by Gemini"}
             </p>
           </div>
         </div>
