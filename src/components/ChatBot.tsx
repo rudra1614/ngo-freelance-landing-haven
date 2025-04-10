@@ -18,6 +18,9 @@ const fallbackResponses: Record<string, string> = {
   "help": "I'm here to help! You can ask me about creating an account, finding opportunities, job applications, posting jobs, fees, verification, remote work, or contacting support."
 };
 
+// Default Gemini API key provided by the user
+const DEFAULT_API_KEY = "AIzaSyBZI2-CO4hnyBFotfxvyodUPYLDh3zB2RQ";
+
 const ChatBot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
@@ -30,9 +33,9 @@ const ChatBot: React.FC = () => {
   ]);
   const [isTyping, setIsTyping] = useState(false);
   const [apiKey, setApiKey] = useState<string>(() => {
-    return localStorage.getItem('gemini_api_key') || '';
+    return localStorage.getItem('gemini_api_key') || DEFAULT_API_KEY;
   });
-  const [showApiKeyInput, setShowApiKeyInput] = useState(!localStorage.getItem('gemini_api_key'));
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -74,20 +77,6 @@ const ChatBot: React.FC = () => {
     setIsTyping(true);
 
     try {
-      if (!apiKey) {
-        // Use fallback response if no API key
-        setTimeout(() => {
-          const botMessage = {
-            id: (Date.now() + 1).toString(),
-            content: getFallbackResponse(input.toLowerCase()),
-            isBot: true
-          };
-          setMessages(prev => [...prev, botMessage]);
-          setIsTyping(false);
-        }, 1000);
-        return;
-      }
-
       // Prepare conversation history for context
       const conversationHistory = messages.slice(-5).map(msg => ({
         role: msg.isBot ? "model" : "user",
