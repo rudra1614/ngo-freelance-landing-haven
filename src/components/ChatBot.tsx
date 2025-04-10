@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { MessageCircle, X, Send, Bot } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, CloudOff, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 type Message = {
@@ -36,6 +36,7 @@ const ChatBot: React.FC = () => {
     return localStorage.getItem('gemini_api_key') || DEFAULT_API_KEY;
   });
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const [apiMode, setApiMode] = useState<'gemini' | 'fallback'>('gemini');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -45,13 +46,56 @@ const ChatBot: React.FC = () => {
     }
   }, [messages]);
 
+  useEffect(() => {
+    // Test the API connection on component mount
+    testApiConnection();
+  }, []);
+
+  const testApiConnection = async () => {
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.0-pro:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: "Hello" }]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 10,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status}`);
+      }
+      
+      setApiMode('gemini');
+    } catch (error) {
+      console.error("Error testing Gemini API connection:", error);
+      setApiMode('fallback');
+      toast({
+        title: "Using Fallback Mode",
+        description: "Unable to connect to Gemini AI. Using predefined responses.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleApiKeySubmit = () => {
     if (apiKey.trim()) {
       localStorage.setItem('gemini_api_key', apiKey);
       setShowApiKeyInput(false);
+      testApiConnection();
       toast({
         title: "API Key Saved",
-        description: "Your API key has been saved for this session.",
+        description: "Your API key has been saved. Testing connection...",
       });
     } else {
       toast({
@@ -77,6 +121,20 @@ const ChatBot: React.FC = () => {
     setIsTyping(true);
 
     try {
+      if (apiMode === 'fallback') {
+        // Use fallback response system
+        setTimeout(() => {
+          const botMessage = {
+            id: (Date.now() + 1).toString(),
+            content: getFallbackResponse(input.toLowerCase()),
+            isBot: true
+          };
+          setMessages(prev => [...prev, botMessage]);
+          setIsTyping(false);
+        }, 800);
+        return;
+      }
+
       // Prepare conversation history for context
       const conversationHistory = messages.slice(-5).map(msg => ({
         role: msg.isBot ? "model" : "user",
@@ -90,7 +148,7 @@ const ChatBot: React.FC = () => {
       });
 
       // Call Gemini API
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.0-pro:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -132,6 +190,7 @@ const ChatBot: React.FC = () => {
       setMessages(prev => [...prev, botMessage]);
     } catch (error) {
       console.error("Error calling Gemini API:", error);
+      setApiMode('fallback');
       
       // Fallback to predefined responses on error
       const botMessage = {
@@ -182,6 +241,12 @@ const ChatBot: React.FC = () => {
           <div className="bg-blue-600 text-white p-4 flex items-center">
             <Bot className="h-6 w-6 mr-2" />
             <h3 className="font-semibold">AI Support Assistant</h3>
+            {apiMode === 'fallback' && (
+              <span className="ml-2 flex items-center text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">
+                <CloudOff className="h-3 w-3 mr-1" />
+                Offline
+              </span>
+            )}
             <Button 
               variant="ghost" 
               size="icon" 
@@ -267,14 +332,26 @@ const ChatBot: React.FC = () => {
               </form>
               
               {/* API key management */}
-              <div className="p-2 border-t border-gray-200">
+              <div className="p-2 border-t border-gray-200 flex justify-between items-center">
                 <Button 
                   variant="link" 
                   className="text-xs text-gray-500" 
                   onClick={() => setShowApiKeyInput(true)}
                 >
+                  <Settings className="h-3 w-3 mr-1" />
                   Change API Key
                 </Button>
+                
+                {apiMode === 'fallback' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                    onClick={testApiConnection}
+                  >
+                    Try to reconnect
+                  </Button>
+                )}
               </div>
             </>
           )}
