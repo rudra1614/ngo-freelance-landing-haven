@@ -11,7 +11,7 @@ const About: React.FC = () => {
       <Hero 
         title="About Us"
         subtitle="Learn more about our mission and values"
-        backgroundImage="/images/about-hero.jpg"
+        backgroundImage="C:\Users\Rudra Naik\Documents\GitHub\ngo-freelance-landing-haven\public\lovable-uploads\NGO 1 (2).jpg"
       />
       
       <div className="container mx-auto px-6 py-12">
